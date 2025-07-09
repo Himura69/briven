@@ -53,7 +53,7 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   // Input Nomor Telepon
                   CustomTextField(
-                    hintText: 'Phone Number',
+                    hintText: 'Pho ne Number',
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone,
                   ),
