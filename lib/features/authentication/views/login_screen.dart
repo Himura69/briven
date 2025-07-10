@@ -4,18 +4,17 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
-import '../../user/views/dashboard_screen.dart';
+import '../controllers/login_controller.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mendapatkan ukuran layar untuk responsivitas
+    // Inisialisasi controller
+    final LoginController controller = Get.put(LoginController());
     final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = screenWidth > 600; // Anggap web jika lebar > 600px
-
-    // Menentukan lebar form berdasarkan platform
+    final isWeb = screenWidth > 600;
     final formWidth = isWeb ? screenWidth * 0.4 : screenWidth * 0.9;
     final padding = isWeb ? 32.0 : 16.0;
 
@@ -33,7 +32,7 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   // Logo
                   Image.asset(
-                    'assets/images/logo.png', // Ganti dengan path logo Anda
+                    'assets/images/logo.png',
                     height: isWeb ? 120 : 80,
                   ),
                   const SizedBox(height: 32),
@@ -50,6 +49,7 @@ class LoginScreen extends StatelessWidget {
                     hintText: 'Phone Number',
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone,
+                    controller: controller.pnController,
                   ),
                   const SizedBox(height: 16),
                   // Input Kata Sandi
@@ -57,6 +57,7 @@ class LoginScreen extends StatelessWidget {
                     hintText: 'Password',
                     obscureText: true,
                     prefixIcon: Icons.lock,
+                    controller: controller.passwordController,
                   ),
                   const SizedBox(height: 16),
                   // Remember Me dan Forgot Password
@@ -65,11 +66,13 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Checkbox(
-                            value: false,
-                            onChanged: (value) {
-                              // Logika untuk Remember Me
-                            },
+                          Obx(
+                            () => Checkbox(
+                              value: controller.rememberMe.value,
+                              onChanged: (value) {
+                                controller.rememberMe.value = value ?? false;
+                              },
+                            ),
                           ),
                           Text(
                             'Remember me',
@@ -81,7 +84,9 @@ class LoginScreen extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigasi ke Forgot Password
+                          // Navigasi ke Forgot Password (belum diimplementasikan)
+                          Get.snackbar(
+                              'Info', 'Forgot Password not implemented yet');
                         },
                         child: Text(
                           'Forgot Password?',
@@ -95,12 +100,16 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   // Tombol Login
-                  CustomButton(
-                    text: 'Login',
-                    onPressed: () {
-                      Get.to(() => const DashboardScreen());
-                    },
-                    width: double.infinity,
+                  Obx(
+                    () => controller.isLoading.value
+                        ? const CircularProgressIndicator()
+                        : CustomButton(
+                            text: 'Login',
+                            onPressed: () {
+                              controller.login();
+                            },
+                            width: double.infinity,
+                          ),
                   ),
                 ],
               ),

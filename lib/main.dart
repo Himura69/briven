@@ -5,16 +5,16 @@ import 'features/user/views/dashboard_screen.dart';
 import 'features/user/views/devices_list_screen.dart';
 import 'features/user/views/profile_screen.dart';
 import 'features/user/views/device_detail_screen.dart';
-
-void main() {
-  runApp(const MyApp());
-}
+import 'services/api_service.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Inisialisasi ApiService
+    Get.put(ApiService());
+
     return GetMaterialApp(
       title: 'Asset Management',
       theme: ThemeData(
@@ -31,4 +31,8 @@ class MyApp extends StatelessWidget {
       ],
     );
   }
+}
+
+void main() {
+  runApp(const MyApp());
 }
