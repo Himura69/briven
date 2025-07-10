@@ -4,8 +4,8 @@ import 'app_colors.dart';
 class AppStyles {
   static const TextStyle title = TextStyle(
     fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: Color.fromARGB(255, 19, 19, 20),
+    fontWeight: FontWeight.w500,
+    color: Color(0xFF036FBB),
   );
 
   static const TextStyle body = TextStyle(

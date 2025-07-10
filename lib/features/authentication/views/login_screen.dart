@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../user/views/dashboard_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -32,15 +33,8 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   // Logo
                   Image.asset(
-                    'assets/images/logo.png', // Pastikan file ini ada
+                    'assets/images/logo.png', // Ganti dengan path logo Anda
                     height: isWeb ? 120 : 80,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.image_not_supported,
-                        size: isWeb ? 120 : 80,
-                        color: AppColors.textSecondary,
-                      ); // Fallback jika logo gagal dimuat
-                    },
                   ),
                   const SizedBox(height: 32),
                   // Judul
@@ -53,7 +47,7 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   // Input Nomor Telepon
                   CustomTextField(
-                    hintText: 'Pho ne Number',
+                    hintText: 'Phone Number',
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone,
                   ),
@@ -74,7 +68,7 @@ class LoginScreen extends StatelessWidget {
                           Checkbox(
                             value: false,
                             onChanged: (value) {
-                              // Logika untuk Remember Me (akan ditambahkan nanti)
+                              // Logika untuk Remember Me
                             },
                           ),
                           Text(
@@ -87,7 +81,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigasi ke Forgot Password (akan ditambahkan nanti)
+                          // Navigasi ke Forgot Password
                         },
                         child: Text(
                           'Forgot Password?',
@@ -104,7 +98,7 @@ class LoginScreen extends StatelessWidget {
                   CustomButton(
                     text: 'Login',
                     onPressed: () {
-                      // Logika login akan ditambahkan nanti
+                      Get.to(() => const DashboardScreen());
                     },
                     width: double.infinity,
                   ),
