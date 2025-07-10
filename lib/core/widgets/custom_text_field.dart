@@ -7,6 +7,8 @@ class CustomTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final bool obscureText;
   final IconData? prefixIcon;
+  final TextEditingController? controller; // Tambahkan controller
+  final int? maxLines; // Tambahkan maxLines
 
   const CustomTextField({
     super.key,
@@ -14,6 +16,8 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.prefixIcon,
+    this.controller,
+    this.maxLines = 1, // Default ke 1 untuk kompatibilitas
   });
 
   @override
@@ -21,8 +25,10 @@ class CustomTextField extends StatelessWidget {
     final isWeb = MediaQuery.of(context).size.width > 600;
 
     return TextField(
+      controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,

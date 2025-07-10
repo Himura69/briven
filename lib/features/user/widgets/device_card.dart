@@ -25,7 +25,7 @@ class DeviceCard extends StatelessWidget {
 
     return Container(
       width: width,
-      padding: EdgeInsets.all(isWeb ? 16 : 12),
+      padding: EdgeInsets.all(isWeb ? 16 : 27),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),

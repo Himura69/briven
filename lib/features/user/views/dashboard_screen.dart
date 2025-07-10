@@ -23,7 +23,7 @@ class DashboardScreen extends StatelessWidget {
         preferredSize: const Size.fromHeight(60),
         child: NavBar(),
       ),
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color.fromARGB(255, 233, 233, 233),
       body: Padding(
         padding: EdgeInsets.all(isWeb ? 32.0 : 16.0),
         child: Column(
@@ -32,15 +32,15 @@ class DashboardScreen extends StatelessWidget {
             Text(
               'Dashboard',
               style: AppStyles.title.copyWith(
-                fontSize: isWeb ? 28 : 24,
+                fontSize: isWeb ? 30 : 24,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 25),
             Expanded(
               child: GridView.count(
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: isWeb ? 24 : 16,
-                mainAxisSpacing: isWeb ? 24 : 16,
+                crossAxisSpacing: isWeb ? 24 : 20,
+                mainAxisSpacing: isWeb ? 24 : 20,
                 childAspectRatio: isWeb ? 1.2 : 1.0,
                 children: [
                   DeviceCard(

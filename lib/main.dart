@@ -4,6 +4,7 @@ import 'features/authentication/views/login_screen.dart';
 import 'features/user/views/dashboard_screen.dart';
 import 'features/user/views/devices_list_screen.dart';
 import 'features/user/views/profile_screen.dart';
+import 'features/user/views/device_detail_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/dashboard', page: () => const DashboardScreen()),
         GetPage(name: '/devices', page: () => const DevicesListScreen()),
         GetPage(name: '/profile', page: () => const ProfileScreen()),
+        GetPage(name: '/device_detail', page: () => const DeviceDetailScreen()),
       ],
     );
   }
