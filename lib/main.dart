@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'features/authentication/views/login_screen.dart';
 import 'features/user/views/dashboard_screen.dart';
 import 'features/user/views/devices_list_screen.dart';
@@ -15,13 +16,17 @@ class MyApp extends StatelessWidget {
     // Inisialisasi ApiService
     Get.put(ApiService());
 
+    // Tentukan rute awal berdasarkan token
+    final GetStorage storage = GetStorage();
+    final initialRoute = storage.hasData('token') ? '/dashboard' : '/login';
+
     return GetMaterialApp(
       title: 'Asset Management',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       ),
-      initialRoute: '/login',
+      initialRoute: initialRoute,
       getPages: [
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/dashboard', page: () => const DashboardScreen()),
@@ -33,6 +38,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-void main() {
+void main() async {
+  // Inisialisasi GetStorage sebelum runApp
+  await GetStorage.init();
   runApp(const MyApp());
 }

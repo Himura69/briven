@@ -11,7 +11,6 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi controller
     final LoginController controller = Get.put(LoginController());
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 600;
@@ -30,13 +29,11 @@ class LoginScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
                   Image.asset(
                     'assets/images/logo.png',
                     height: isWeb ? 120 : 80,
                   ),
                   const SizedBox(height: 32),
-                  // Judul
                   Text(
                     'Login to Your Account',
                     style: AppStyles.title.copyWith(
@@ -44,7 +41,6 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Input Nomor Telepon
                   CustomTextField(
                     hintText: 'Phone Number',
                     keyboardType: TextInputType.phone,
@@ -52,7 +48,6 @@ class LoginScreen extends StatelessWidget {
                     controller: controller.pnController,
                   ),
                   const SizedBox(height: 16),
-                  // Input Kata Sandi
                   CustomTextField(
                     hintText: 'Password',
                     obscureText: true,
@@ -60,7 +55,6 @@ class LoginScreen extends StatelessWidget {
                     controller: controller.passwordController,
                   ),
                   const SizedBox(height: 16),
-                  // Remember Me dan Forgot Password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -84,7 +78,6 @@ class LoginScreen extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigasi ke Forgot Password (belum diimplementasikan)
                           Get.snackbar(
                               'Info', 'Forgot Password not implemented yet');
                         },
@@ -99,7 +92,6 @@ class LoginScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Tombol Login
                   Obx(
                     () => controller.isLoading.value
                         ? const CircularProgressIndicator()

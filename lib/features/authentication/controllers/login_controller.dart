@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
 import '../models/user_model.dart';
 
 class LoginController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
+  final GetStorage storage = GetStorage();
   final pnController = TextEditingController();
   final passwordController = TextEditingController();
   final deviceNameController = TextEditingController(text: 'Flutter Device');
   final isLoading = false.obs;
   final rememberMe = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Muat status "Remember me" dari penyimpanan
+    if (storage.hasData('rememberMe')) {
+      rememberMe.value = storage.read('rememberMe');
+    }
+  }
 
   @override
   void onClose() {
@@ -34,8 +45,18 @@ class LoginController extends GetxController {
       );
 
       final user = UserModel.fromJson(response);
-      // Simpan token untuk autentikasi selanjutnya (misalnya, menggunakan GetStorage)
-      // Untuk saat ini, kita langsung navigasi
+
+      // Simpan token dan data pengguna jika "Remember me" dicentang
+      if (rememberMe.value) {
+        await storage.write('token', user.token);
+        await storage.write('user', user.toJson());
+        await storage.write('rememberMe', true);
+      } else {
+        await storage.remove('token');
+        await storage.remove('user');
+        await storage.write('rememberMe', false);
+      }
+
       Get.toNamed('/dashboard');
     } catch (e) {
       Get.snackbar('Error', e.toString());
