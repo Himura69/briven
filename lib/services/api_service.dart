@@ -7,7 +7,7 @@ class ApiService extends GetConnect {
   void onInit() {
     httpClient.baseUrl = baseUrl;
     httpClient.defaultContentType = 'application/json';
-    httpClient.timeout = const Duration(seconds: 30); // Sesuai dokumentasi
+    httpClient.timeout = const Duration(seconds: 30);
     httpClient.addRequestModifier<dynamic>((request) {
       request.headers['Accept'] = 'application/json';
       request.headers['X-Device-Info'] = 'Flutter App, v1.0.0';
@@ -28,7 +28,6 @@ class ApiService extends GetConnect {
     });
 
     if (response.status.hasError) {
-      // Tangani error sesuai dokumentasi
       final errorMessage =
           response.body is Map && response.body['message'] != null
               ? response.body['message']

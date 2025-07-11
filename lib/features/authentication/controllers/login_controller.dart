@@ -4,6 +4,8 @@ import '../../../services/api_service.dart';
 import '../models/user_model.dart';
 
 class LoginController extends GetxController {
+  static LoginController get to =>
+      Get.find<LoginController>(); // Untuk akses global
   final ApiService apiService = Get.find<ApiService>();
   final pnController = TextEditingController();
   final passwordController = TextEditingController();
@@ -13,6 +15,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
+    // Hanya dispose controller jika benar-benar diperlukan
     pnController.dispose();
     passwordController.dispose();
     deviceNameController.dispose();
@@ -34,12 +37,12 @@ class LoginController extends GetxController {
       );
 
       final user = UserModel.fromJson(response);
-      // Simpan token untuk autentikasi selanjutnya (misalnya, menggunakan GetStorage)
       print(
-          'Login successful: Token = ${user.token}, User = ${user.name}'); // Logging untuk debugging
-      Get.toNamed('/dashboard');
+          'Login successful: Token = ${user.token}, User = ${user.name}'); // Logging
+      // Gunakan Get.offNamed untuk mengganti screen, bukan menumpuk
+      Get.offNamed('/dashboard');
     } catch (e) {
-      print('Login error: $e'); // Logging untuk debugging
+      print('Login error: $e'); // Logging
       String errorMessage = e.toString();
       if (errorMessage.contains('422')) {
         errorMessage =
