@@ -14,23 +14,25 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    print('Parsing user JSON: $json'); // Log respons JSON
+    final userData = json['user'] as Map<String, dynamic>? ??
+        json; // Menangani jika ada nested 'user'
     return UserModel(
-      userId: json['user']['userId'] as int,
-      name: json['user']['name'] as String,
-      pn: json['user']['pn'] as String,
-      role: json['user']['role'] as String,
-      token: json['token'] as String,
+      userId: userData['userId'] as int? ?? 0,
+      name: userData['name'] as String? ?? 'Unknown',
+      pn: userData['pn'] as String? ?? '',
+      role: userData['role'] as String? ?? 'User',
+      token:
+          json['token'] as String? ?? '', // Pastikan token diambil dari 'token'
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'user': {
-        'userId': userId,
-        'name': name,
-        'pn': pn,
-        'role': role,
-      },
+      'userId': userId,
+      'name': name,
+      'pn': pn,
+      'role': role,
       'token': token,
     };
   }

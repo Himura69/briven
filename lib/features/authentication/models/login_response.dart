@@ -1,38 +1,62 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import '../../../services/api_service.dart';
+import '../models/user_model.dart';
 
-class LoginResponse {
-  final String token;
-  final User user;
+class LoginController extends GetxController {
+  static LoginController get to => Get.find<LoginController>();
+  final ApiService apiService = Get.find<ApiService>();
+  final GetStorage storage = GetStorage();
+  final pnController = TextEditingController();
+  final passwordController = TextEditingController();
+  final deviceNameController = TextEditingController(text: 'Flutter Device');
+  final isLoading = false.obs;
+  final rememberMe = false.obs;
 
-  LoginResponse({required this.token, required this.user});
-
-  factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    return LoginResponse(
-      token: json['data']['token'],
-      user: User.fromJson(json['data']['user']),
-    );
+  @override
+  void onClose() {
+    pnController.dispose();
+    passwordController.dispose();
+    deviceNameController.dispose();
+    super.onClose();
   }
-}
 
-class User {
-  final int userId;
-  final String name;
-  final String pn;
-  final String role;
+  Future<void> login() async {
+    if (pnController.text.isEmpty || passwordController.text.isEmpty) {
+      Get.snackbar('Error', 'Harap isi semua kolom');
+      return;
+    }
 
-  User({
-    required this.userId,
-    required this.name,
-    required this.pn,
-    required this.role,
-  });
+    try {
+      isLoading.value = true;
+      final response = await apiService.login(
+        pn: pnController.text,
+        password: passwordController.text,
+        deviceName: deviceNameController.text,
+      );
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      userId: json['userId'],
-      name: json['name'],
-      pn: json['pn'],
-      role: json['role'],
-    );
+      final user = UserModel.fromJson(response);
+      await storage.write('token', user.token);
+      await storage.write('user', user.toJson());
+      print('Login berhasil: Token = ${user.token}, User = ${user.name}');
+      print('Token tersimpan: ${storage.read('token')}'); // Log token
+      print('Data user tersimpan: ${storage.read('user')}'); // Log user data
+      Get.offNamed('/dashboard');
+    } catch (e) {
+      print('Error login: $e');
+      String errorMessage = e.toString();
+      if (errorMessage.contains('422')) {
+        errorMessage =
+            'Kredensial tidak valid. Periksa nomor telepon atau kata sandi Anda.';
+      } else if (errorMessage.contains('401')) {
+        errorMessage = 'Tidak diizinkan. Periksa kredensial Anda.';
+      } else if (errorMessage.contains('429')) {
+        errorMessage = 'Terlalu banyak permintaan. Coba lagi nanti.';
+      }
+      Get.snackbar('Error', errorMessage);
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

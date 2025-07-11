@@ -3,22 +3,23 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/nav_bar.dart';
-import 'request_check_modal.dart';
+import '../controllers/device_detail_controller.dart';
+import '../models/device_model.dart';
 
 class DeviceDetailScreen extends StatelessWidget {
   const DeviceDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final DeviceDetailController controller = Get.put(DeviceDetailController());
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 600;
     final contentWidth = isWeb ? screenWidth * 0.6 : screenWidth * 0.9;
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: NavBar(),
+      appBar: AppBar(
+        title: const Text('Detail Perangkat'),
+        backgroundColor: AppColors.primary,
       ),
       backgroundColor: AppColors.background,
       body: Center(
@@ -27,50 +28,53 @@ class DeviceDetailScreen extends StatelessWidget {
             padding: EdgeInsets.all(isWeb ? 32.0 : 16.0),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: contentWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Device Details',
-                    style: AppStyles.title.copyWith(
-                      fontSize: isWeb ? 28 : 24,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Gambar Perangkat (Placeholder)
-                  Container(
-                    height: isWeb ? 200 : 150,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      image: const DecorationImage(
-                        image: AssetImage(
-                            'assets/images/device.png'), // Ganti dengan path gambar
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Informasi Perangkat
-                  _buildDetailField('Device Name', 'Laptop XYZ', isWeb),
-                  _buildDetailField('Serial Number', 'SN123456789', isWeb),
-                  _buildDetailField('Assigned Date', '2025-01-01', isWeb),
-                  _buildDetailField('Status', 'Active', isWeb),
-                  _buildDetailField('Condition', 'Good', isWeb),
-                  _buildDetailField(
-                      'Specifications', '16GB RAM, 512GB SSD, Intel i7', isWeb),
-                  const SizedBox(height: 24),
-                  // Tombol Request Check
-                  CustomButton(
-                    text: 'Request Check',
-                    onPressed: () {
-                      Get.dialog(const RequestCheckModal(
-                          deviceId: 'SN123456789')); // Placeholder deviceId
-                    },
-                    width: isWeb ? 300 : double.infinity,
-                  ),
-                ],
+              child: Obx(
+                () => controller.isLoading.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : controller.errorMessage.value.isNotEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  controller.errorMessage.value,
+                                  style: AppStyles.body.copyWith(
+                                    fontSize: isWeb ? 16 : 14,
+                                    color: Colors.red,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                if (controller.errorMessage.value
+                                    .contains('login'))
+                                  CustomButton(
+                                    text: 'Login',
+                                    onPressed: () => Get.offAllNamed('/login'),
+                                    width: isWeb ? 300 : double.infinity,
+                                  )
+                                else
+                                  CustomButton(
+                                    text: 'Coba Lagi',
+                                    onPressed: () =>
+                                        controller.fetchDeviceDetail(
+                                            Get.arguments['deviceId']),
+                                    width: isWeb ? 300 : double.infinity,
+                                  ),
+                              ],
+                            ),
+                          )
+                        : controller.device.value == null
+                            ? Center(
+                                child: Text(
+                                  'Data perangkat tidak tersedia',
+                                  style: AppStyles.body.copyWith(
+                                    fontSize: isWeb ? 16 : 14,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              )
+                            : _buildDeviceDetail(
+                                controller.device.value!, isWeb),
               ),
             ),
           ),
@@ -79,11 +83,59 @@ class DeviceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailField(String label, String value, bool isWeb) {
+  Widget _buildDeviceDetail(DeviceModel device, bool isWeb) {
+    print('Merender detail perangkat: ${device.toJson()}');
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Detail Perangkat',
+              style: AppStyles.body.copyWith(
+                fontSize: isWeb ? 20 : 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildDetailRow('ID Perangkat',
+                device.deviceId?.toString() ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow('Merek', device.brand ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow(
+                'Nomor Seri', device.serialNumber ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow(
+              'Kategori',
+              device.categoryName ??
+                  'Kategori tidak tersedia, hubungi dukungan',
+              isWeb,
+              textColor: device.categoryName == null ||
+                      device.categoryName == 'Unknown Category'
+                  ? Colors.red
+                  : Colors.grey[600],
+            ),
+            _buildDetailRow('ID Penugasan',
+                device.assignmentId?.toString() ?? 'Tidak Diketahui', isWeb),
+            const SizedBox(height: 16),
+            CustomButton(
+              text: 'Kembali',
+              onPressed: () => Get.back(),
+              width: isWeb ? 300 : double.infinity,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, bool isWeb,
+      {Color? textColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
@@ -92,11 +144,14 @@ class DeviceDetailScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppStyles.body.copyWith(
-              fontSize: isWeb ? 16 : 14,
+          Flexible(
+            child: Text(
+              value,
+              style: AppStyles.body.copyWith(
+                fontSize: isWeb ? 16 : 14,
+                color: textColor ?? Colors.grey[600],
+              ),
+              textAlign: TextAlign.end,
             ),
           ),
         ],

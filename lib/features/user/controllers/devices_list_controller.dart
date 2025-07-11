@@ -3,33 +3,27 @@ import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
 import '../models/device_model.dart';
 
-class DeviceDetailController extends GetxController {
+class DevicesListController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
   final GetStorage storage = GetStorage();
-  final device = Rxn<DeviceModel>();
+  final devices = <DeviceModel>[].obs;
   final isLoading = false.obs;
   final errorMessage = ''.obs;
 
   @override
   void onInit() {
-    final deviceId = Get.arguments['deviceId'] as int?;
-    if (deviceId == null) {
-      errorMessage.value = 'ID perangkat tidak valid';
-      Get.snackbar('Error', 'ID perangkat tidak valid');
-      return;
-    }
-    print('DeviceDetailController diinisialisasi dengan deviceId: $deviceId');
+    print('DevicesListController diinisialisasi');
     print('Token tersimpan: ${storage.read('token')}');
     if (storage.read('token') == null) {
       errorMessage.value = 'Sesi berakhir. Silakan login kembali.';
       Get.offAllNamed('/login');
     } else {
-      fetchDeviceDetail(deviceId);
+      fetchDevices();
     }
     super.onInit();
   }
 
-  Future<void> fetchDeviceDetail(int deviceId) async {
+  Future<void> fetchDevices() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
@@ -37,13 +31,25 @@ class DeviceDetailController extends GetxController {
       if (token == null) {
         throw Exception('Token autentikasi tidak ditemukan');
       }
-      print('Mengambil detail perangkat dengan token: $token');
-      final response = await apiService.getDeviceDetail(deviceId);
-      print('Respons detail perangkat mentah: $response');
-      device.value = DeviceModel.fromJson(response);
-      print('Perangkat yang dipetakan: ${device.value?.toJson()}');
+      print('Mengambil perangkat dengan token: $token');
+      final response = await apiService.getDevices();
+      print('Respons perangkat: $response');
+      if (response is List<dynamic>) {
+        devices.value = response.map((item) {
+          if (item is Map<String, dynamic>) {
+            print('Memetakan item: $item'); // Log setiap item
+            return DeviceModel.fromJson(item);
+          } else {
+            throw Exception('Format item perangkat tidak valid: $item');
+          }
+        }).toList();
+        print('Perangkat yang dipetakan: ${devices.map((d) => d.toJson())}');
+      } else {
+        throw Exception(
+            'Diharapkan daftar perangkat, tetapi mendapat: $response');
+      }
     } catch (e) {
-      print('Error pengambilan detail perangkat: $e');
+      print('Error pengambilan perangkat: $e');
       String message = e.toString();
       if (message.contains('401') || message.contains('Unauthenticated')) {
         message = 'Sesi berakhir. Silakan login kembali.';
@@ -55,7 +61,7 @@ class DeviceDetailController extends GetxController {
       } else if (message.contains('type cast')) {
         message = 'Format data dari server tidak valid. Hubungi dukungan.';
       } else {
-        message = 'Gagal memuat detail perangkat: $e';
+        message = 'Gagal memuat perangkat: $e';
       }
       errorMessage.value = message;
       Get.snackbar('Error', message);

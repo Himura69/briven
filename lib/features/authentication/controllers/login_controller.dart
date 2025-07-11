@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
 import '../models/user_model.dart';
 
 class LoginController extends GetxController {
-  static LoginController get to =>
-      Get.find<LoginController>(); // Untuk akses global
+  static LoginController get to => Get.find<LoginController>();
   final ApiService apiService = Get.find<ApiService>();
+  final GetStorage storage = GetStorage();
   final pnController = TextEditingController();
   final passwordController = TextEditingController();
   final deviceNameController = TextEditingController(text: 'Flutter Device');
@@ -15,7 +16,6 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // Hanya dispose controller jika benar-benar diperlukan
     pnController.dispose();
     passwordController.dispose();
     deviceNameController.dispose();
@@ -24,7 +24,7 @@ class LoginController extends GetxController {
 
   Future<void> login() async {
     if (pnController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar('Error', 'Please fill in all fields');
+      Get.snackbar('Error', 'Harap isi semua kolom');
       return;
     }
 
@@ -35,22 +35,29 @@ class LoginController extends GetxController {
         password: passwordController.text,
         deviceName: deviceNameController.text,
       );
-
+      print('Respons login mentah: $response'); // Log respons mentah
       final user = UserModel.fromJson(response);
-      print(
-          'Login successful: Token = ${user.token}, User = ${user.name}'); // Logging
-      // Gunakan Get.offNamed untuk mengganti screen, bukan menumpuk
+      if (user.token.isEmpty) {
+        throw Exception('Token tidak ditemukan di respons login');
+      }
+      await storage.write('token', user.token);
+      await storage.write('user', user.toJson());
+      print('Login berhasil: Token = ${user.token}, User = ${user.name}');
+      print('Token tersimpan: ${storage.read('token')}');
+      print('Data user tersimpan: ${storage.read('user')}');
       Get.offNamed('/dashboard');
     } catch (e) {
-      print('Login error: $e'); // Logging
+      print('Error login: $e');
       String errorMessage = e.toString();
       if (errorMessage.contains('422')) {
         errorMessage =
-            'Invalid credentials. Please check your phone number or password.';
+            'Kredensial tidak valid. Periksa nomor telepon atau kata sandi Anda.';
       } else if (errorMessage.contains('401')) {
-        errorMessage = 'Unauthorized. Please check your credentials.';
+        errorMessage = 'Tidak diizinkan. Periksa kredensial Anda.';
       } else if (errorMessage.contains('429')) {
-        errorMessage = 'Too many requests. Please try again later.';
+        errorMessage = 'Terlalu banyak permintaan. Coba lagi nanti.';
+      } else {
+        errorMessage = 'Gagal login: $e';
       }
       Get.snackbar('Error', errorMessage);
     } finally {

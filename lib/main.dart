@@ -13,12 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi ApiService
-    Get.put(ApiService());
-
-    // Tentukan rute awal berdasarkan token
-    final GetStorage storage = GetStorage();
-    final initialRoute = storage.hasData('token') ? '/dashboard' : '/login';
+    Get.put(ApiService(), permanent: true);
 
     return GetMaterialApp(
       title: 'Asset Management',
@@ -26,7 +21,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       ),
-      initialRoute: initialRoute,
+      initialRoute: '/login',
       getPages: [
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/dashboard', page: () => const DashboardScreen()),
@@ -39,7 +34,8 @@ class MyApp extends StatelessWidget {
 }
 
 void main() async {
-  // Inisialisasi GetStorage sebelum runApp
+  WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  print('GetStorage diinisialisasi');
   runApp(const MyApp());
 }
