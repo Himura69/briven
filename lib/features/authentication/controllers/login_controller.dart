@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
 import '../models/user_model.dart';
 
 class LoginController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
-  final GetStorage storage = GetStorage();
   final pnController = TextEditingController();
   final passwordController = TextEditingController();
   final deviceNameController = TextEditingController(text: 'Flutter Device');
   final isLoading = false.obs;
   final rememberMe = false.obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    // Muat status "Remember me" dari penyimpanan
-    if (storage.hasData('rememberMe')) {
-      rememberMe.value = storage.read('rememberMe');
-    }
-  }
 
   @override
   void onClose() {
@@ -45,21 +34,22 @@ class LoginController extends GetxController {
       );
 
       final user = UserModel.fromJson(response);
-
-      // Simpan token dan data pengguna jika "Remember me" dicentang
-      if (rememberMe.value) {
-        await storage.write('token', user.token);
-        await storage.write('user', user.toJson());
-        await storage.write('rememberMe', true);
-      } else {
-        await storage.remove('token');
-        await storage.remove('user');
-        await storage.write('rememberMe', false);
-      }
-
+      // Simpan token untuk autentikasi selanjutnya (misalnya, menggunakan GetStorage)
+      print(
+          'Login successful: Token = ${user.token}, User = ${user.name}'); // Logging untuk debugging
       Get.toNamed('/dashboard');
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      print('Login error: $e'); // Logging untuk debugging
+      String errorMessage = e.toString();
+      if (errorMessage.contains('422')) {
+        errorMessage =
+            'Invalid credentials. Please check your phone number or password.';
+      } else if (errorMessage.contains('401')) {
+        errorMessage = 'Unauthorized. Please check your credentials.';
+      } else if (errorMessage.contains('429')) {
+        errorMessage = 'Too many requests. Please try again later.';
+      }
+      Get.snackbar('Error', errorMessage);
     } finally {
       isLoading.value = false;
     }

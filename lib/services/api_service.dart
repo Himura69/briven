@@ -1,15 +1,15 @@
 import 'package:get/get.dart';
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.230:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.216:8000/api/v1';
 
   @override
   void onInit() {
     httpClient.baseUrl = baseUrl;
     httpClient.defaultContentType = 'application/json';
+    httpClient.timeout = const Duration(seconds: 30); // Sesuai dokumentasi
     httpClient.addRequestModifier<dynamic>((request) {
       request.headers['Accept'] = 'application/json';
-      // Tambahkan X-Device-Info sesuai kebutuhan
       request.headers['X-Device-Info'] = 'Flutter App, v1.0.0';
       return request;
     });
@@ -28,8 +28,18 @@ class ApiService extends GetConnect {
     });
 
     if (response.status.hasError) {
-      throw Exception(response.body['message'] ?? 'Login failed');
+      // Tangani error sesuai dokumentasi
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Login failed: ${response.statusCode}';
+      throw Exception(errorMessage);
     }
+
+    if (response.body == null || response.body['data'] == null) {
+      throw Exception('Invalid response format from server');
+    }
+
     return response.body['data'];
   }
 }
