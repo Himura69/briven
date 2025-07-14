@@ -1,23 +1,22 @@
 class LoanHistoryModel {
-  final String? deviceName;
-  final String? serialNumber;
-  final String? assignedDate;
+  final String deviceName;
+  final String serialNumber;
+  final String assignedDate;
   final String? returnedDate;
 
   LoanHistoryModel({
-    this.deviceName,
-    this.serialNumber,
-    this.assignedDate,
+    required this.deviceName,
+    required this.serialNumber,
+    required this.assignedDate,
     this.returnedDate,
   });
 
   factory LoanHistoryModel.fromJson(Map<String, dynamic> json) {
-    print('Parsing loan history JSON: $json');
     return LoanHistoryModel(
-      deviceName: json['deviceName'] as String?,
-      serialNumber: json['serialNumber'] as String?,
-      assignedDate: json['assignedDate'] as String?,
-      returnedDate: json['returnedDate'] as String?,
+      deviceName: json['deviceName'] ?? 'Unknown',
+      serialNumber: json['serialNumber'] ?? 'Unknown',
+      assignedDate: json['assignedDate'] ?? 'Unknown',
+      returnedDate: json['returnedDate'],
     );
   }
 
@@ -44,9 +43,9 @@ class LoanHistoryMeta {
 
   factory LoanHistoryMeta.fromJson(Map<String, dynamic> json) {
     return LoanHistoryMeta(
-      currentPage: json['currentPage'] as int? ?? 1,
-      lastPage: json['lastPage'] as int? ?? 1,
-      total: json['total'] as int? ?? 0,
+      currentPage: json['currentPage'] ?? 1,
+      lastPage: json['lastPage'] ?? 1,
+      total: json['total'] ?? 0,
     );
   }
 
