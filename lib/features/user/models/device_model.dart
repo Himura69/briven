@@ -23,6 +23,8 @@ class DeviceModel {
         deviceData['deviceCategory'] as String? ??
         deviceData['type'] as String? ??
         deviceData['deviceType'] as String? ??
+        deviceData['category_name']
+            as String? ?? // Tambahan untuk variasi snake_case
         'Unknown Category';
     print('Field kategori yang ditemukan: $category'); // Log field kategori
     return DeviceModel(

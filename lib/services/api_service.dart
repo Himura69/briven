@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.216:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.203:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override

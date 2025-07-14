@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
-import '../models/device_model.dart';
+import '../models/device_detail_model.dart';
 
 class DeviceDetailController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
   final GetStorage storage = GetStorage();
-  final device = Rxn<DeviceModel>();
+  final device = Rxn<DeviceDetailModel>();
   final isLoading = false.obs;
   final errorMessage = ''.obs;
 
@@ -40,7 +40,7 @@ class DeviceDetailController extends GetxController {
       print('Mengambil detail perangkat dengan token: $token');
       final response = await apiService.getDeviceDetail(deviceId);
       print('Respons detail perangkat mentah: $response');
-      device.value = DeviceModel.fromJson(response);
+      device.value = DeviceDetailModel.fromJson(response);
       print('Perangkat yang dipetakan: ${device.value?.toJson()}');
     } catch (e) {
       print('Error pengambilan detail perangkat: $e');

@@ -4,7 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/device_detail_controller.dart';
-import '../models/device_model.dart';
+import '../models/device_detail_model.dart';
 
 class DeviceDetailScreen extends StatelessWidget {
   const DeviceDetailScreen({super.key});
@@ -83,7 +83,7 @@ class DeviceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeviceDetail(DeviceModel device, bool isWeb) {
+  Widget _buildDeviceDetail(DeviceDetailModel device, bool isWeb) {
     print('Merender detail perangkat: ${device.toJson()}');
     return Card(
       elevation: 2,
@@ -107,17 +107,19 @@ class DeviceDetailScreen extends StatelessWidget {
             _buildDetailRow(
                 'Nomor Seri', device.serialNumber ?? 'Tidak Diketahui', isWeb),
             _buildDetailRow(
-              'Kategori',
-              device.categoryName ??
-                  'Kategori tidak tersedia, hubungi dukungan',
-              isWeb,
-              textColor: device.categoryName == null ||
-                      device.categoryName == 'Unknown Category'
-                  ? Colors.red
-                  : Colors.grey[600],
-            ),
-            _buildDetailRow('ID Penugasan',
-                device.assignmentId?.toString() ?? 'Tidak Diketahui', isWeb),
+                'Kode Aset', device.assetCode ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow('Tanggal Penugasan',
+                device.assignedDate ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow(
+                'Spesifikasi 1', device.spec1 ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow(
+                'Spesifikasi 2', device.spec2 ?? 'Tidak Diketahui', isWeb),
+            _buildDetailRow(
+                'Spesifikasi 3', device.spec3 ?? 'Tidak Diketahui', isWeb),
+            if (device.spec4 != null && device.spec4 != 'Not Specified')
+              _buildDetailRow('Spesifikasi 4', device.spec4!, isWeb),
+            if (device.spec5 != null && device.spec5 != 'Not Specified')
+              _buildDetailRow('Spesifikasi 5', device.spec5!, isWeb),
             const SizedBox(height: 16),
             CustomButton(
               text: 'Kembali',
@@ -132,6 +134,7 @@ class DeviceDetailScreen extends StatelessWidget {
 
   Widget _buildDetailRow(String label, String value, bool isWeb,
       {Color? textColor}) {
+    print('Merender baris detail: $label = $value');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
