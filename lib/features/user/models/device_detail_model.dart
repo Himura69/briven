@@ -27,16 +27,16 @@ class DeviceDetailModel {
     print('Parsing device detail JSON: $json');
     final deviceData = json['data'] as Map<String, dynamic>? ?? json;
     return DeviceDetailModel(
-      deviceId: deviceData['deviceId'] as int? ?? 0,
-      brand: deviceData['brand'] as String? ?? 'Unknown Brand',
-      serialNumber: deviceData['serialNumber'] as String? ?? 'Unknown Serial',
-      assetCode: deviceData['assetCode'] as String? ?? 'Unknown Asset Code',
-      assignedDate: deviceData['assignedDate'] as String? ?? 'Unknown Date',
-      spec1: deviceData['spec1'] as String? ?? 'Not Specified',
-      spec2: deviceData['spec2'] as String? ?? 'Not Specified',
-      spec3: deviceData['spec3'] as String? ?? 'Not Specified',
-      spec4: deviceData['spec4'] as String? ?? 'Not Specified',
-      spec5: deviceData['spec5'] as String? ?? 'Not Specified',
+      deviceId: deviceData['deviceId'] as int?,
+      brand: deviceData['brand'] as String?,
+      serialNumber: deviceData['serialNumber'] as String?,
+      assetCode: deviceData['assetCode'] as String?,
+      assignedDate: deviceData['assignedDate'] as String?,
+      spec1: deviceData['spec1'] as String?,
+      spec2: deviceData['spec2'] as String?,
+      spec3: deviceData['spec3'] as String?,
+      spec4: deviceData['spec4'] as String?,
+      spec5: deviceData['spec5'] as String?,
     );
   }
 

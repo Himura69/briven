@@ -101,25 +101,18 @@ class DeviceDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('ID Perangkat',
-                device.deviceId?.toString() ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow('Merek', device.brand ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow(
-                'Nomor Seri', device.serialNumber ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow(
-                'Kode Aset', device.assetCode ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow('Tanggal Penugasan',
-                device.assignedDate ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow(
-                'Spesifikasi 1', device.spec1 ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow(
-                'Spesifikasi 2', device.spec2 ?? 'Tidak Diketahui', isWeb),
-            _buildDetailRow(
-                'Spesifikasi 3', device.spec3 ?? 'Tidak Diketahui', isWeb),
-            if (device.spec4 != null && device.spec4 != 'Not Specified')
-              _buildDetailRow('Spesifikasi 4', device.spec4!, isWeb),
-            if (device.spec5 != null && device.spec5 != 'Not Specified')
-              _buildDetailRow('Spesifikasi 5', device.spec5!, isWeb),
+            _buildDetailRow('ID Perangkat', device.deviceId?.toString(), isWeb),
+            _buildDetailRow('Merek', device.brand, isWeb),
+            _buildDetailRow('Nomor Seri', device.serialNumber, isWeb),
+            _buildDetailRow('Kode Aset', device.assetCode, isWeb),
+            _buildDetailRow('Tanggal Penugasan', device.assignedDate, isWeb),
+            _buildDetailRow('Spesifikasi 1', device.spec1, isWeb),
+            _buildDetailRow('Spesifikasi 2', device.spec2, isWeb),
+            _buildDetailRow('Spesifikasi 3', device.spec3, isWeb),
+            if (device.spec4 != null)
+              _buildDetailRow('Spesifikasi 4', device.spec4, isWeb),
+            if (device.spec5 != null)
+              _buildDetailRow('Spesifikasi 5', device.spec5, isWeb),
             const SizedBox(height: 16),
             CustomButton(
               text: 'Kembali',
@@ -132,7 +125,7 @@ class DeviceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, bool isWeb,
+  Widget _buildDetailRow(String label, String? value, bool isWeb,
       {Color? textColor}) {
     print('Merender baris detail: $label = $value');
     return Padding(
@@ -149,10 +142,12 @@ class DeviceDetailScreen extends StatelessWidget {
           ),
           Flexible(
             child: Text(
-              value,
+              value ?? 'Tidak Tersedia',
               style: AppStyles.body.copyWith(
                 fontSize: isWeb ? 16 : 14,
-                color: textColor ?? Colors.grey[600],
+                color: value == null
+                    ? Colors.red
+                    : (textColor ?? Colors.grey[600]),
               ),
               textAlign: TextAlign.end,
             ),
