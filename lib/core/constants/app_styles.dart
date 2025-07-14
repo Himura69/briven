@@ -2,20 +2,37 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppStyles {
-  static const TextStyle title = TextStyle(
+  static final TextStyle title = TextStyle(
+    fontFamily: 'Poppins', // Gunakan font modern
     fontSize: 24,
-    fontWeight: FontWeight.w500,
-    color: Color(0xFF036FBB),
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
   );
 
-  static const TextStyle body = TextStyle(
+  static final TextStyle body = TextStyle(
+    fontFamily: 'Poppins',
     fontSize: 14,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle button = TextStyle(
+  static final TextStyle button = TextStyle(
+    fontFamily: 'Poppins',
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: Colors.white,
+  );
+
+  // Gaya baru untuk label dan sublabel
+  static final TextStyle label = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
+  static final TextStyle sublabel = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 14,
+    color: AppColors.textSecondary,
   );
 }
