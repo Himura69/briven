@@ -174,4 +174,30 @@ class ApiService extends GetConnect {
 
     return response.body['data'];
   }
+
+  Future<Map<String, dynamic>> getLoanHistory(
+      {int page = 1, int perPage = 10}) async {
+    final token = storage.read('token');
+    if (token == null) {
+      throw Exception('Token autentikasi tidak ditemukan');
+    }
+
+    final response = await get('/user/history?page=$page&perPage=$perPage');
+    print('Respons riwayat peminjaman: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal mengambil riwayat peminjaman: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+
+    if (response.body == null ||
+        response.body['data'] == null ||
+        response.body['meta'] == null) {
+      throw Exception('Format respons riwayat peminjaman tidak valid');
+    }
+
+    return response.body;
+  }
 }

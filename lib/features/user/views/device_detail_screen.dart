@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/device_detail_controller.dart';
 import '../models/device_detail_model.dart';
 
-class DeviceDetailScreen extends StatelessWidget {
+class DeviceDetailScreen extends StatefulWidget {
   const DeviceDetailScreen({super.key});
+
+  @override
+  _DeviceDetailScreenState createState() => _DeviceDetailScreenState();
+}
+
+class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
+  bool _isLocaleInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi data lokal untuk 'id_ID'
+    initializeDateFormatting('id_ID', null).then((_) {
+      setState(() {
+        _isLocaleInitialized = true;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +93,11 @@ class DeviceDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                               )
-                            : _buildDeviceDetail(
-                                controller.device.value!, isWeb),
+                            : _isLocaleInitialized
+                                ? _buildDeviceDetail(
+                                    controller.device.value!, isWeb)
+                                : const Center(
+                                    child: CircularProgressIndicator()),
               ),
             ),
           ),
@@ -85,6 +108,19 @@ class DeviceDetailScreen extends StatelessWidget {
 
   Widget _buildDeviceDetail(DeviceDetailModel device, bool isWeb) {
     print('Merender detail perangkat: ${device.toJson()}');
+    // Format tanggal untuk assignedDate
+    String? formattedDate;
+    if (device.assignedDate != null) {
+      try {
+        final date = DateTime.parse(device.assignedDate!);
+        final dateFormat = DateFormat('d MMMM yyyy', 'id_ID');
+        formattedDate = dateFormat.format(date);
+      } catch (e) {
+        print('Error parsing assignedDate: $e');
+        formattedDate = 'Format Tanggal Tidak Valid';
+      }
+    }
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -105,7 +141,7 @@ class DeviceDetailScreen extends StatelessWidget {
             _buildDetailRow('Merek', device.brand, isWeb),
             _buildDetailRow('Nomor Seri', device.serialNumber, isWeb),
             _buildDetailRow('Kode Aset', device.assetCode, isWeb),
-            _buildDetailRow('Tanggal Penugasan', device.assignedDate, isWeb),
+            _buildDetailRow('Tanggal Penugasan', formattedDate, isWeb),
             _buildDetailRow('Spesifikasi 1', device.spec1, isWeb),
             _buildDetailRow('Spesifikasi 2', device.spec2, isWeb),
             _buildDetailRow('Spesifikasi 3', device.spec3, isWeb),
