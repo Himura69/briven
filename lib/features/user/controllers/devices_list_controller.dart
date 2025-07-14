@@ -7,8 +7,10 @@ class DevicesListController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
   final GetStorage storage = GetStorage();
   final devices = <DeviceModel>[].obs;
+  final filteredDevices = <DeviceModel>[].obs;
   final isLoading = false.obs;
   final errorMessage = ''.obs;
+  final searchQuery = ''.obs; // Menyimpan query pencarian
 
   @override
   void onInit() {
@@ -37,12 +39,13 @@ class DevicesListController extends GetxController {
       if (response is List<dynamic>) {
         devices.value = response.map((item) {
           if (item is Map<String, dynamic>) {
-            print('Memetakan item: $item'); // Log setiap item
+            print('Memetakan item: $item');
             return DeviceModel.fromJson(item);
           } else {
             throw Exception('Format item perangkat tidak valid: $item');
           }
         }).toList();
+        filteredDevices.value = devices; // Inisialisasi filteredDevices
         print('Perangkat yang dipetakan: ${devices.map((d) => d.toJson())}');
       } else {
         throw Exception(
@@ -68,5 +71,22 @@ class DevicesListController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void filterDevices(String query) {
+    searchQuery.value = query;
+    if (query.isEmpty) {
+      filteredDevices.value = devices;
+    } else {
+      filteredDevices.value = devices.where((device) {
+        final brandMatch = device.brand != null &&
+            device.brand!.toLowerCase().contains(query.toLowerCase());
+        final categoryMatch = device.categoryName != null &&
+            device.categoryName!.toLowerCase().contains(query.toLowerCase());
+        return brandMatch || categoryMatch;
+      }).toList();
+    }
+    print('Query pencarian: $query');
+    print('Hasil filter: ${filteredDevices.map((d) => d.toJson())}');
   }
 }
