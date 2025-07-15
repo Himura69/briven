@@ -44,7 +44,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
         preferredSize: const Size.fromHeight(60),
         child: NavBar(),
       ),
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color.fromARGB(255, 220, 217, 217),
       body: Container(
         width: double.infinity,
         height: double.infinity,
