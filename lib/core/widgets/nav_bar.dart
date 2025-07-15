@@ -16,10 +16,23 @@ class NavBar extends StatelessWidget {
     final DashboardController controller = Get.find<DashboardController>();
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 600;
+    final isRoot = Get.currentRoute == '/dashboard';
 
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      leading: !isRoot
+          ? IconButton(
+              onPressed: () {
+                Get.back();
+              },
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: isWeb ? 24 : 20,
+              ),
+            )
+          : null,
       flexibleSpace: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -47,29 +60,35 @@ class NavBar extends StatelessWidget {
         // Navigasi Home
         isWeb
             ? TextButton.icon(
-                onPressed: () {
-                  Get.to(() => const DashboardScreen());
-                },
+                onPressed: isRoot
+                    ? null
+                    : () {
+                        Get.offAll(() => const DashboardScreen(),
+                            predicate: (route) => false);
+                      },
                 icon: Icon(
                   Icons.home,
-                  color: Colors.white,
+                  color: isRoot ? Colors.white54 : Colors.white,
                   size: isWeb ? 24 : 20,
                 ),
                 label: Text(
                   'Home',
                   style: AppStyles.body.copyWith(
-                    color: Colors.white,
+                    color: isRoot ? Colors.white54 : Colors.white,
                     fontSize: isWeb ? 16 : 14,
                   ),
                 ),
               )
             : IconButton(
-                onPressed: () {
-                  Get.to(() => const DashboardScreen());
-                },
+                onPressed: isRoot
+                    ? null
+                    : () {
+                        Get.offAll(() => const DashboardScreen(),
+                            predicate: (route) => false);
+                      },
                 icon: Icon(
                   Icons.home,
-                  color: Colors.white,
+                  color: isRoot ? Colors.white54 : Colors.white,
                   size: 20,
                 ),
               ),
@@ -77,7 +96,12 @@ class NavBar extends StatelessWidget {
         isWeb
             ? TextButton.icon(
                 onPressed: () {
-                  Get.to(() => const DevicesListScreen());
+                  if (Get.currentRoute == '/devices') {
+                    Get.back();
+                  } else {
+                    Get.offNamedUntil('/devices',
+                        (route) => route.settings.name == '/dashboard');
+                  }
                 },
                 icon: Icon(
                   Icons.devices,
@@ -94,7 +118,12 @@ class NavBar extends StatelessWidget {
               )
             : IconButton(
                 onPressed: () {
-                  Get.to(() => const DevicesListScreen());
+                  if (Get.currentRoute == '/devices') {
+                    Get.back();
+                  } else {
+                    Get.offNamedUntil('/devices',
+                        (route) => route.settings.name == '/dashboard');
+                  }
                 },
                 icon: Icon(
                   Icons.devices,
@@ -106,7 +135,12 @@ class NavBar extends StatelessWidget {
         isWeb
             ? TextButton.icon(
                 onPressed: () {
-                  Get.to(() => const ProfileScreen());
+                  if (Get.currentRoute == '/profile') {
+                    Get.back();
+                  } else {
+                    Get.offNamedUntil('/profile',
+                        (route) => route.settings.name == '/dashboard');
+                  }
                 },
                 icon: Icon(
                   Icons.person,
@@ -123,7 +157,12 @@ class NavBar extends StatelessWidget {
               )
             : IconButton(
                 onPressed: () {
-                  Get.to(() => const ProfileScreen());
+                  if (Get.currentRoute == '/profile') {
+                    Get.back();
+                  } else {
+                    Get.offNamedUntil('/profile',
+                        (route) => route.settings.name == '/dashboard');
+                  }
                 },
                 icon: Icon(
                   Icons.person,

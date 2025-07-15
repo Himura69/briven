@@ -47,8 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         preferredSize: const Size.fromHeight(60),
         child: NavBar(),
       ),
-      backgroundColor: const Color.fromARGB(
-          0, 245, 245, 245), // Pastikan Scaffold transparan
+      backgroundColor: AppColors.background, // Pastikan Scaffold transparan
       body: Container(
         width: double.infinity,
         height: double.infinity, // Pastikan full layar
