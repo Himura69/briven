@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.69:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.203:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -56,22 +56,7 @@ class ApiService extends GetConnect {
       throw Exception('Format respons dari server tidak valid');
     }
 
-    // Simpan token, user, dan role
-    final data = response.body['data'];
-    await storage.write('token', data['token']);
-    await storage.write('user', data['user']);
-    await storage.write(
-        'role',
-        data['user']['role'] ??
-            'user'); // Asumsi role ada di data['user']['role']
-    print('Role tersimpan: ${data['user']['role']}');
-
-    return data;
-  }
-
-  // Ambil role
-  Future<String?> getRole() async {
-    return storage.read('role');
+    return response.body['data'];
   }
 
   Future<Map<String, dynamic>> getProfile() async {
@@ -115,8 +100,7 @@ class ApiService extends GetConnect {
 
     await storage.remove('token');
     await storage.remove('user');
-    await storage.remove('role'); // Hapus role saat logout
-    print('Token, user, dan role dihapus dari penyimpanan');
+    print('Token dan data user dihapus dari penyimpanan');
   }
 
   Future<Map<String, dynamic>> getHomeSummary() async {
@@ -215,33 +199,5 @@ class ApiService extends GetConnect {
     }
 
     return response.body;
-  }
-
-  // Tambahan untuk admin: Ambil data KPI dashboard
-  Future<Map<String, dynamic>> getAdminKpis({int? branchId}) async {
-    final token = storage.read('token');
-    if (token == null) {
-      throw Exception('Token autentikasi tidak ditemukan');
-    }
-
-    final response = await get(
-      branchId != null
-          ? '/admin/dashboard/kpis?branchId=$branchId'
-          : '/admin/dashboard/kpis',
-    );
-    print('Respons KPI admin: ${response.bodyString}');
-    if (response.status.hasError) {
-      final errorMessage =
-          response.body is Map && response.body['message'] != null
-              ? response.body['message']
-              : 'Gagal mengambil KPI: ${response.statusCode}';
-      throw Exception(errorMessage);
-    }
-
-    if (response.body == null || response.body['data'] == null) {
-      throw Exception('Format respons KPI tidak valid');
-    }
-
-    return response.body['data'];
   }
 }

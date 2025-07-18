@@ -35,23 +35,17 @@ class LoginController extends GetxController {
         password: passwordController.text,
         deviceName: deviceNameController.text,
       );
-      print('Respons login mentah: $response');
+      print('Respons login mentah: $response'); // Log respons mentah
       final user = UserModel.fromJson(response);
       if (user.token.isEmpty) {
         throw Exception('Token tidak ditemukan di respons login');
       }
       await storage.write('token', user.token);
       await storage.write('user', user.toJson());
-      final role = await apiService.getRole();
-      print('Role pengguna: $role');
-
-      if (role == 'admin') {
-        Get.offAllNamed('/admin/dashboard');
-      } else if (role == 'user') {
-        Get.offAllNamed('/dashboard');
-      } else {
-        throw Exception('Role tidak dikenal: $role');
-      }
+      print('Login berhasil: Token = ${user.token}, User = ${user.name}');
+      print('Token tersimpan: ${storage.read('token')}');
+      print('Data user tersimpan: ${storage.read('user')}');
+      Get.offNamed('/dashboard');
     } catch (e) {
       print('Error login: $e');
       String errorMessage = e.toString();
