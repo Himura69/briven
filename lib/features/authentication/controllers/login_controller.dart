@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../services/api_service.dart';
 import '../models/user_model.dart';
+import '../../admin/views/admin_root_screen.dart'; // Tambah import untuk root admin
 
 class LoginController extends GetxController {
   static LoginController get to => Get.find<LoginController>();
@@ -17,8 +18,8 @@ class LoginController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Pastikan GetStorage diinisialisasi
-    GetStorage.init().then((_) => print('GetStorage diinisialisasi di LoginController'));
+    GetStorage.init()
+        .then((_) => print('GetStorage diinisialisasi di LoginController'));
   }
 
   @override
@@ -43,23 +44,25 @@ class LoginController extends GetxController {
         deviceName: deviceNameController.text,
       );
       print('Respons login mentah: $response');
-      // Pemetaan ke UserModel dari data['user']
+
       final user = UserModel.fromJson(response['user'] ?? {});
       final token = response['token'] ?? '';
       if (token.isEmpty) {
         throw Exception('Token tidak ditemukan di respons login');
       }
-      // Simpan token dan role
+
+      // Simpan token & role
       await storage.write('token', token);
       await storage.write('role', user.role ?? 'user');
       await storage.write('user', user.toJson());
+
       print('Login berhasil: Token = $token, User = ${user.name}, Role = ${user.role}');
       print('Token tersimpan: ${storage.read('token')}');
       print('Role tersimpan: ${storage.read('role')}');
 
-      // Navigasi berdasarkan role
+      // Arahkan ke halaman sesuai role
       if (user.role == 'admin') {
-        Get.offAllNamed('/admin/dashboard');
+        Get.offAll(() => AdminRootScreen()); // langsung ke root admin
       } else {
         Get.offAllNamed('/dashboard');
       }

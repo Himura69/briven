@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_styles.dart';
-import '../../admin/core/widgets/admin_nav_bar.dart'; // Menggunakan AdminNavBar
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_styles.dart';
+import '../../../../../core/widgets/admin_nav_bar.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -17,7 +17,7 @@ class AdminDashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
-        child: AdminNavBar(), // Menggunakan AdminNavBar untuk admin
+        child: AdminNavBar(), // Menggunakan AdminNavBar sebagai root navigasi admin
       ),
       backgroundColor: Colors.transparent,
       body: Container(
@@ -32,11 +32,7 @@ class AdminDashboardScreen extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(isWeb
-                ? 32.0
-                : isTablet
-                    ? 24.0
-                    : 16.0),
+            padding: EdgeInsets.all(isWeb ? 32.0 : isTablet ? 24.0 : 16.0),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: contentWidth),
               child: Column(
@@ -45,88 +41,12 @@ class AdminDashboardScreen extends StatelessWidget {
                   Text(
                     'Dashboard Admin',
                     style: AppStyles.title.copyWith(
-                      fontSize: isWeb
-                          ? 22
-                          : isTablet
-                              ? 20
-                              : 18,
+                      fontSize: isWeb ? 22 : isTablet ? 20 : 18,
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Placeholder untuk KPI
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'KPI Overview',
-                          style: AppStyles.title.copyWith(
-                            fontSize: isWeb ? 18 : 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight
-                                .w600, // Sedikit lebih ringan dari title
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Data KPI akan ditampilkan di sini (misalnya, total aset, peminjaman aktif).',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Placeholder untuk Grafik
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Grafik',
-                          style: AppStyles.title.copyWith(
-                            fontSize: isWeb ? 18 : 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Grafik tren peminjaman atau status aset akan ditampilkan di sini.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Placeholder untuk Log Aktivitas
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -137,27 +57,13 @@ class AdminDashboardScreen extends StatelessWidget {
                         width: 1.5,
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Log Aktivitas',
-                          style: AppStyles.title.copyWith(
-                            fontSize: isWeb ? 18 : 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Log aktivitas admin (misalnya, persetujuan peminjaman) akan ditampilkan di sini.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      'KPI, grafik, dan log aktivitas akan ditambahkan di sini',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],

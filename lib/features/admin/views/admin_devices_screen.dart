@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
-import '../../admin/core/widgets/admin_nav_bar.dart';
+import '../../../core/widgets/admin_nav_bar.dart'; 
 
 class AdminDevicesScreen extends StatelessWidget {
   const AdminDevicesScreen({super.key});
