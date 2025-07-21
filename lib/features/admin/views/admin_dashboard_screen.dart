@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_styles.dart';
 import '../../../../../core/widgets/admin_nav_bar.dart';
+import '../../../../../core/widgets/kpi_card.dart';
+import '../../../../../core/widgets/activity_log_card.dart';
+import '../../../../../core/widgets/device_condition_chart.dart';
+import '../../../../../core/widgets/branch_distribution_chart.dart';
+import '../../admin/controllers/admin_dashboard_controller.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -12,62 +16,191 @@ class AdminDashboardScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 900;
     final isTablet = screenWidth >= 600 && screenWidth <= 900;
-    final contentWidth = isWeb ? screenWidth * 0.6 : screenWidth * 0.9;
+    final contentWidth = isWeb ? screenWidth * 0.7 : screenWidth * 0.95;
+
+    final controller = Get.put(AdminDashboardController());
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
-        child: AdminNavBar(), // Menggunakan AdminNavBar sebagai root navigasi admin
+        child: AdminNavBar(),
       ),
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.gradientStart, AppColors.gradientEnd],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(isWeb ? 32.0 : isTablet ? 24.0 : 16.0),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: contentWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Dashboard Admin',
-                    style: AppStyles.title.copyWith(
-                      fontSize: isWeb ? 22 : isTablet ? 20 : 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(isWeb
+              ? 32.0
+              : isTablet
+                  ? 24.0
+                  : 16.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: contentWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER
+                Text(
+                  'Dashboard Admin',
+                  style: AppStyles.title.copyWith(
+                    fontSize: isWeb
+                        ? 24
+                        : isTablet
+                            ? 22
+                            : 20,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w700,
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.5),
-                        width: 1.5,
+                ),
+                const SizedBox(height: 24),
+
+                // KPI SECTION
+                Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (controller.errorMessage.isNotEmpty) {
+                    return Text(
+                      controller.errorMessage.value,
+                      style: const TextStyle(color: Colors.redAccent),
+                    );
+                  }
+                  if (controller.kpiData.value == null) {
+                    return const Text(
+                      'Tidak ada data KPI',
+                      style: TextStyle(color: Colors.black54),
+                    );
+                  }
+
+                  final kpi = controller.kpiData.value!;
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      KpiCard(
+                        title: 'Total Devices',
+                        value: kpi.totalDevices.toString(),
+                        color: Colors.blue,
                       ),
-                    ),
-                    child: const Text(
-                      'KPI, grafik, dan log aktivitas akan ditambahkan di sini',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
+                      KpiCard(
+                        title: 'In Use',
+                        value: kpi.inUse.toString(),
+                        color: Colors.green,
                       ),
-                    ),
+                      KpiCard(
+                        title: 'Available',
+                        value: kpi.available.toString(),
+                        color: Colors.orange,
+                      ),
+                      KpiCard(
+                        title: 'Damaged',
+                        value: kpi.damaged.toString(),
+                        color: Colors.red,
+                      ),
+                    ],
+                  );
+                }),
+
+                const SizedBox(height: 32),
+
+                // PIE CHART
+                Text(
+                  'Kondisi Perangkat',
+                  style: AppStyles.title.copyWith(
+                    fontSize: isWeb
+                        ? 20
+                        : isTablet
+                            ? 18
+                            : 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                Obx(() {
+                  final chart = controller.chartData.value;
+                  if (chart == null || chart.deviceConditions.isEmpty) {
+                    return const Text(
+                      'Tidak ada data kondisi perangkat.',
+                      style: TextStyle(color: Colors.black54),
+                    );
+                  }
+                  return Center(
+                    child: SizedBox(
+                      width: 280,
+                      child: DeviceConditionChart(data: chart.deviceConditions),
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 32),
+
+                // BAR CHART
+                Text(
+                  'Distribusi Perangkat per Cabang',
+                  style: AppStyles.title.copyWith(
+                    fontSize: isWeb
+                        ? 20
+                        : isTablet
+                            ? 18
+                            : 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Obx(() {
+                  final chart = controller.chartData.value;
+                  if (chart == null || chart.devicesPerBranch.isEmpty) {
+                    return const Text(
+                      'Tidak ada data distribusi cabang.',
+                      style: TextStyle(color: Colors.black54),
+                    );
+                  }
+                  return BranchDistributionChart(data: chart.devicesPerBranch);
+                }),
+
+                const SizedBox(height: 32),
+
+                // ACTIVITY LOG
+                Text(
+                  'Activity Log',
+                  style: AppStyles.title.copyWith(
+                    fontSize: isWeb
+                        ? 20
+                        : isTablet
+                            ? 18
+                            : 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Obx(() {
+                  final kpi = controller.kpiData.value;
+                  if (kpi == null || kpi.activityLog.isEmpty) {
+                    return const Text(
+                      'Tidak ada aktivitas terbaru.',
+                      style: TextStyle(color: Colors.black54),
+                    );
+                  }
+                  return Column(
+                    children: kpi.activityLog.map((log) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: ActivityLogCard(
+                          title: log.title,
+                          description: log.description,
+                          user: log.user,
+                          date: log.date,
+                          time: log.time,
+                          category: log.category,
+                          type: log.type,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }),
+              ],
             ),
           ),
         ),

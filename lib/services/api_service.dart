@@ -245,4 +245,27 @@ class ApiService extends GetConnect {
 
     return response.body['data'];
   }
+
+  Future<Map<String, dynamic>> getAdminCharts({int? branchId}) async {
+    final token = storage.read('token');
+    if (token == null) throw Exception('Token autentikasi tidak ditemukan');
+
+    final response = await get(
+      '/admin/dashboard/charts${branchId != null ? '?branchId=$branchId' : ''}',
+    );
+    print('Respons Chart admin: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal mengambil data Chart: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+
+    if (response.body == null || response.body['data'] == null) {
+      throw Exception('Format respons Chart tidak valid');
+    }
+
+    return response.body['data'];
+  }
 }
