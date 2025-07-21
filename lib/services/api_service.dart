@@ -268,4 +268,87 @@ class ApiService extends GetConnect {
 
     return response.body['data'];
   }
+
+  Future<Map<String, dynamic>> getDevicesAdmin({
+    String search = '',
+    String condition = '',
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    final token = storage.read('token');
+    if (token == null) {
+      throw Exception('Token autentikasi tidak ditemukan');
+    }
+
+    final response = await get(
+        '/admin/devices?search=$search&condition=$condition&page=$page&perPage=$perPage');
+
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal mengambil daftar perangkat: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+
+    if (response.body == null ||
+        response.body['data'] == null ||
+        response.body['meta'] == null) {
+      throw Exception('Format respons perangkat admin tidak valid');
+    }
+
+    return {
+      'data': response.body['data'],
+      'meta': response.body['meta'],
+    };
+  }
+
+  Future<void> createDevice({
+    required String brand,
+    required String serialNumber,
+    required String condition,
+  }) async {
+    final token = storage.read('token');
+    if (token == null) throw Exception('Token autentikasi tidak ditemukan');
+
+    final response = await post('/admin/devices', {
+      'brand': brand,
+      'serialNumber': serialNumber,
+      'condition': condition,
+    });
+
+    print('Respons tambah perangkat: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal menambah perangkat: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<void> updateDevice({
+    required int deviceId,
+    required String brand,
+    required String serialNumber,
+    required String condition,
+  }) async {
+    final token = storage.read('token');
+    if (token == null) throw Exception('Token autentikasi tidak ditemukan');
+
+    final response = await put('/admin/devices/$deviceId', {
+      'brand': brand,
+      'serialNumber': serialNumber,
+      'condition': condition,
+    });
+
+    print('Respons update perangkat: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal memperbarui perangkat: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+  }
 }

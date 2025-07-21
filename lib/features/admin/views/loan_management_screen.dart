@@ -8,7 +8,7 @@ class LoanManagementScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Text(
-          'Loan Management - Coming Soon',
+          'Devices Assignmen - Coming Soon',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,

@@ -77,7 +77,7 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment),
-            label: 'Loans',
+            label: 'Device Assignment',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),

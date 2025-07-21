@@ -6,6 +6,7 @@ class AdminNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox.shrink(); // tidak perlu lagi karena sudah di root screen
+    return const SizedBox
+        .shrink(); // tidak perlu lagi karena sudah di root screen
   }
 }

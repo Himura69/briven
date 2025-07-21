@@ -9,7 +9,8 @@ import 'features/user/views/devices_list_screen.dart';
 import 'features/user/views/profile_screen.dart';
 import 'features/user/views/device_detail_screen.dart';
 import 'features/admin/views/admin_dashboard_screen.dart';
-import 'features/admin/views/admin_devices_screen.dart'; // Baru untuk admin devices
+import 'features/admin/views/admin_devices_screen.dart';
+import 'core/constants/app_routes.dart'; // Tambahan untuk AppRoutes
 import 'services/api_service.dart';
 
 class MyApp extends StatelessWidget {
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       getPages: [
+        // Route lama tetap ada
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/dashboard', page: () => const DashboardScreen()),
         GetPage(name: '/devices', page: () => const DevicesListScreen()),
@@ -36,9 +38,10 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/device_detail', page: () => const DeviceDetailScreen()),
         GetPage(
             name: '/admin/dashboard', page: () => const AdminDashboardScreen()),
-        GetPage(
-            name: '/admin/devices',
-            page: () => const AdminDevicesScreen()), // Baru untuk admin
+        GetPage(name: '/admin/devices', page: () => const AdminDevicesScreen()),
+
+        // Tambahkan semua route dari AppRoutes (Dashboard, Devices, Form)
+        ...AppRoutes.routes,
       ],
     );
   }
