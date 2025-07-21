@@ -1,11 +1,15 @@
+import 'package:briven/features/admin/views/admin_device_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'features/authentication/views/login_screen.dart';
+import 'features/authentication/controllers/login_controller.dart';
 import 'features/user/views/dashboard_screen.dart';
 import 'features/user/views/devices_list_screen.dart';
 import 'features/user/views/profile_screen.dart';
 import 'features/user/views/device_detail_screen.dart';
+import 'features/admin/views/admin_dashboard_screen.dart';
+import 'features/admin/views/admin_device_screen.dart'; // Baru untuk admin devices
 import 'services/api_service.dart';
 
 class MyApp extends StatelessWidget {
@@ -14,12 +18,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(ApiService(), permanent: true);
+    Get.put(LoginController(), permanent: true);
 
     return GetMaterialApp(
       title: 'Asset Management',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        fontFamily: 'Poppins',
       ),
       initialRoute: '/login',
       getPages: [
@@ -28,6 +34,11 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/devices', page: () => const DevicesListScreen()),
         GetPage(name: '/profile', page: () => const ProfileScreen()),
         GetPage(name: '/device_detail', page: () => const DeviceDetailScreen()),
+        GetPage(
+            name: '/admin/dashboard', page: () => const AdminDashboardScreen()),
+        GetPage(
+            name: '/admin/devices',
+            page: () => const AdminDevicesScreen()), // Baru untuk admin
       ],
     );
   }

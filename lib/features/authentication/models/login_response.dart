@@ -37,9 +37,8 @@ class LoginController extends GetxController {
       );
 
       final user = UserModel.fromJson(response);
-      await storage.write('token', user.token);
       await storage.write('user', user.toJson());
-      print('Login berhasil: Token = ${user.token}, User = ${user.name}');
+      
       print('Token tersimpan: ${storage.read('token')}'); // Log token
       print('Data user tersimpan: ${storage.read('user')}'); // Log user data
       Get.offNamed('/dashboard');

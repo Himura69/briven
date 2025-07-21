@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'dart:convert'; // Ditambahkan untuk jsonEncode
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.203:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.192:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -17,9 +18,9 @@ class ApiService extends GetConnect {
       print('URL Permintaan: ${request.url}');
       print('Header Permintaan: ${request.headers}');
       print('Token digunakan: $token');
-      if (token != null) {
+      if (token != null && request.url.path != '/auth/login') {
         request.headers['Authorization'] = 'Bearer $token';
-      } else {
+      } else if (token == null) {
         print('Token tidak ditemukan di penyimpanan');
       }
       return request;
@@ -56,7 +57,25 @@ class ApiService extends GetConnect {
       throw Exception('Format respons dari server tidak valid');
     }
 
-    return response.body['data'];
+    final data = response.body['data'];
+    print('Data login: $data');
+    await storage.write('token', data['token'] ?? '');
+    await storage.write('role', data['user']?['role'] ?? 'user');
+    if (data['user'] != null) {
+      await storage.write('user', jsonEncode(data['user']));
+    } else {
+      print('Data user tidak ditemukan, tidak menyimpan user ke storage');
+      await storage.write('user', jsonEncode({}));
+    }
+    print('Token disimpan: ${storage.read('token')}');
+    print('Role disimpan: ${storage.read('role')}');
+    print('User disimpan: ${storage.read('user')}');
+
+    return data;
+  }
+
+  Future<String?> getRole() async {
+    return storage.read('role');
   }
 
   Future<Map<String, dynamic>> getProfile() async {
@@ -99,8 +118,9 @@ class ApiService extends GetConnect {
     }
 
     await storage.remove('token');
+    await storage.remove('role');
     await storage.remove('user');
-    print('Token dan data user dihapus dari penyimpanan');
+    print('Token, role, dan data user dihapus dari penyimpanan');
   }
 
   Future<Map<String, dynamic>> getHomeSummary() async {
@@ -199,5 +219,30 @@ class ApiService extends GetConnect {
     }
 
     return response.body;
+  }
+
+  Future<Map<String, dynamic>> getAdminKPIs({int? branchId}) async {
+    final token = storage.read('token');
+    if (token == null) {
+      throw Exception('Token autentikasi tidak ditemukan');
+    }
+
+    final response = await get(
+      '/admin/dashboard/kpis${branchId != null ? '?branchId=$branchId' : ''}',
+    );
+    print('Respons KPI admin: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal mengambil KPI: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+
+    if (response.body == null || response.body['data'] == null) {
+      throw Exception('Format respons KPI tidak valid');
+    }
+
+    return response.body['data'];
   }
 }

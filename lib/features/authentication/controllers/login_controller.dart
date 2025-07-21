@@ -15,6 +15,13 @@ class LoginController extends GetxController {
   final rememberMe = false.obs;
 
   @override
+  void onInit() {
+    super.onInit();
+    // Pastikan GetStorage diinisialisasi
+    GetStorage.init().then((_) => print('GetStorage diinisialisasi di LoginController'));
+  }
+
+  @override
   void onClose() {
     pnController.dispose();
     passwordController.dispose();
@@ -35,17 +42,27 @@ class LoginController extends GetxController {
         password: passwordController.text,
         deviceName: deviceNameController.text,
       );
-      print('Respons login mentah: $response'); // Log respons mentah
-      final user = UserModel.fromJson(response);
-      if (user.token.isEmpty) {
+      print('Respons login mentah: $response');
+      // Pemetaan ke UserModel dari data['user']
+      final user = UserModel.fromJson(response['user'] ?? {});
+      final token = response['token'] ?? '';
+      if (token.isEmpty) {
         throw Exception('Token tidak ditemukan di respons login');
       }
-      await storage.write('token', user.token);
+      // Simpan token dan role
+      await storage.write('token', token);
+      await storage.write('role', user.role ?? 'user');
       await storage.write('user', user.toJson());
-      print('Login berhasil: Token = ${user.token}, User = ${user.name}');
+      print('Login berhasil: Token = $token, User = ${user.name}, Role = ${user.role}');
       print('Token tersimpan: ${storage.read('token')}');
-      print('Data user tersimpan: ${storage.read('user')}');
-      Get.offNamed('/dashboard');
+      print('Role tersimpan: ${storage.read('role')}');
+
+      // Navigasi berdasarkan role
+      if (user.role == 'admin') {
+        Get.offAllNamed('/admin/dashboard');
+      } else {
+        Get.offAllNamed('/dashboard');
+      }
     } catch (e) {
       print('Error login: $e');
       String errorMessage = e.toString();
