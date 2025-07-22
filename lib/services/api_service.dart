@@ -3,7 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'dart:convert'; // Ditambahkan untuk jsonEncode
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.192:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.118:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -303,19 +303,60 @@ class ApiService extends GetConnect {
     };
   }
 
-  Future<void> createDevice({
+  Future<Map<String, dynamic>> getDeviceDetailAdmin(int deviceId) async {
+    final token = storage.read('token');
+    if (token == null) throw Exception('Token autentikasi tidak ditemukan');
+
+    final response = await get('/admin/devices/$deviceId');
+
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal mengambil detail perangkat: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+
+    if (response.body == null || response.body['data'] == null) {
+      throw Exception('Format respons detail perangkat tidak valid');
+    }
+
+    return response.body['data'];
+  }
+
+  Future<void> createDeviceAdmin({
     required String brand,
+    required String brandName,
     required String serialNumber,
+    required String assetCode,
+    required String briboxId,
     required String condition,
+    String? spec1,
+    String? spec2,
+    String? spec3,
+    String? spec4,
+    String? spec5,
+    String? devDate,
   }) async {
     final token = storage.read('token');
     if (token == null) throw Exception('Token autentikasi tidak ditemukan');
 
-    final response = await post('/admin/devices', {
+    final payload = {
       'brand': brand,
-      'serialNumber': serialNumber,
+      'brand_name': brandName,
+      'serial_number': serialNumber,
+      'asset_code': assetCode,
+      'bribox_id': briboxId,
       'condition': condition,
-    });
+      if (spec1 != null) 'spec1': spec1,
+      if (spec2 != null) 'spec2': spec2,
+      if (spec3 != null) 'spec3': spec3,
+      if (spec4 != null) 'spec4': spec4,
+      if (spec5 != null) 'spec5': spec5,
+      if (devDate != null) 'dev_date': devDate,
+    };
+
+    final response = await post('/admin/devices', payload);
 
     print('Respons tambah perangkat: ${response.bodyString}');
     if (response.status.hasError) {
@@ -327,20 +368,40 @@ class ApiService extends GetConnect {
     }
   }
 
-  Future<void> updateDevice({
+  Future<void> updateDeviceAdmin({
     required int deviceId,
-    required String brand,
-    required String serialNumber,
-    required String condition,
+    String? brand,
+    String? brandName,
+    String? serialNumber,
+    String? assetCode,
+    String? briboxId,
+    String? condition,
+    String? spec1,
+    String? spec2,
+    String? spec3,
+    String? spec4,
+    String? spec5,
+    String? devDate,
   }) async {
     final token = storage.read('token');
     if (token == null) throw Exception('Token autentikasi tidak ditemukan');
 
-    final response = await put('/admin/devices/$deviceId', {
-      'brand': brand,
-      'serialNumber': serialNumber,
-      'condition': condition,
-    });
+    final payload = {
+      if (brand != null) 'brand': brand,
+      if (brandName != null) 'brand_name': brandName,
+      if (serialNumber != null) 'serial_number': serialNumber,
+      if (assetCode != null) 'asset_code': assetCode,
+      if (briboxId != null) 'bribox_id': briboxId,
+      if (condition != null) 'condition': condition,
+      if (spec1 != null) 'spec1': spec1,
+      if (spec2 != null) 'spec2': spec2,
+      if (spec3 != null) 'spec3': spec3,
+      if (spec4 != null) 'spec4': spec4,
+      if (spec5 != null) 'spec5': spec5,
+      if (devDate != null) 'dev_date': devDate,
+    };
+
+    final response = await put('/admin/devices/$deviceId', payload);
 
     print('Respons update perangkat: ${response.bodyString}');
     if (response.status.hasError) {
@@ -348,6 +409,22 @@ class ApiService extends GetConnect {
           response.body is Map && response.body['message'] != null
               ? response.body['message']
               : 'Gagal memperbarui perangkat: ${response.statusCode}';
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<void> deleteDeviceAdmin(int deviceId) async {
+    final token = storage.read('token');
+    if (token == null) throw Exception('Token autentikasi tidak ditemukan');
+
+    final response = await delete('/admin/devices/$deviceId');
+
+    print('Respons hapus perangkat: ${response.bodyString}');
+    if (response.status.hasError) {
+      final errorMessage =
+          response.body is Map && response.body['message'] != null
+              ? response.body['message']
+              : 'Gagal menghapus perangkat: ${response.statusCode}';
       throw Exception(errorMessage);
     }
   }

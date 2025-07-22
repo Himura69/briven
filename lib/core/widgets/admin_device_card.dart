@@ -1,89 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../features/admin/models/admin_device_model.dart';
 
 class AdminDeviceCard extends StatelessWidget {
   final AdminDeviceModel device;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const AdminDeviceCard({super.key, required this.device});
-
-  Color _getConditionColor(String condition) {
-    switch (condition.toLowerCase()) {
-      case 'baik':
-        return Colors.green;
-      case 'rusak':
-        return Colors.red;
-      case 'perlu pengecekan':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
+  const AdminDeviceCard({
+    super.key,
+    required this.device,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Device Info
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                device.brand,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'SN: ${device.serialNumber}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colors.black54,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
-          ),
-
-          // Condition Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _getConditionColor(device.condition).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _getConditionColor(device.condition),
-                width: 1,
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon perangkat
+            Icon(Icons.devices, color: Colors.blueAccent, size: 36),
+            const SizedBox(width: 16),
+            // Info perangkat
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    device.brandName.isNotEmpty
+                        ? '${device.brand} ${device.brandName}'
+                        : device.brand,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Asset Code: ${device.assetCode}'),
+                  Text('Serial: ${device.serialNumber}'),
+                  Text('Kondisi: ${device.condition}'),
+                  if (device.isAssigned && device.assignedTo != null)
+                    Text('Dipinjam oleh: ${device.assignedTo}'),
+                ],
               ),
             ),
-            child: Text(
-              device.condition,
-              style: TextStyle(
-                color: _getConditionColor(device.condition),
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
+            // Tombol aksi
+            Column(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.orange),
+                  onPressed: onEdit,
+                  tooltip: 'Edit',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () async {
+                    final confirmed = await Get.dialog<bool>(
+                      AlertDialog(
+                        title: const Text('Konfirmasi Hapus'),
+                        content: Text(
+                            'Apakah Anda yakin ingin menghapus perangkat ${device.assetCode}?'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Get.back(result: false),
+                              child: const Text('Batal')),
+                          ElevatedButton(
+                              onPressed: () => Get.back(result: true),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red),
+                              child: const Text('Hapus')),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && onDelete != null) {
+                      onDelete!();
+                    }
+                  },
+                  tooltip: 'Hapus',
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
