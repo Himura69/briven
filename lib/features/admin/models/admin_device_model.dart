@@ -19,6 +19,10 @@ class AdminDeviceModel {
   final String updatedAt;
   final String updatedBy;
 
+  // Optional: data detail assignment
+  final CurrentAssignment? currentAssignment;
+  final List<AssignmentHistory> assignmentHistory;
+
   AdminDeviceModel({
     required this.deviceId,
     required this.assetCode,
@@ -32,13 +36,15 @@ class AdminDeviceModel {
     this.spec3,
     this.spec4,
     this.spec5,
-    required this.isAssigned,
+    this.isAssigned = false,
     this.assignedTo,
     this.assignedDate,
     required this.createdAt,
     required this.createdBy,
     required this.updatedAt,
     required this.updatedBy,
+    this.currentAssignment,
+    this.assignmentHistory = const [],
   });
 
   factory AdminDeviceModel.fromJson(Map<String, dynamic> json) {
@@ -62,6 +68,13 @@ class AdminDeviceModel {
       createdBy: json['createdBy'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       updatedBy: json['updatedBy'] ?? '',
+      currentAssignment: json['currentAssignment'] != null
+          ? CurrentAssignment.fromJson(json['currentAssignment'])
+          : null,
+      assignmentHistory: (json['assignmentHistory'] as List<dynamic>?)
+              ?.map((e) => AssignmentHistory.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 
@@ -86,6 +99,152 @@ class AdminDeviceModel {
       'createdBy': createdBy,
       'updatedAt': updatedAt,
       'updatedBy': updatedBy,
+      'currentAssignment': currentAssignment?.toJson(),
+      'assignmentHistory': assignmentHistory.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CurrentAssignment {
+  final int assignmentId;
+  final UserSummary user;
+  final BranchSummary branch;
+  final String assignedDate;
+  final String status;
+  final String? notes;
+
+  CurrentAssignment({
+    required this.assignmentId,
+    required this.user,
+    required this.branch,
+    required this.assignedDate,
+    required this.status,
+    this.notes,
+  });
+
+  factory CurrentAssignment.fromJson(Map<String, dynamic> json) {
+    return CurrentAssignment(
+      assignmentId: json['assignmentId'] ?? 0,
+      user: UserSummary.fromJson(json['user'] ?? {}),
+      branch: BranchSummary.fromJson(json['branch'] ?? {}),
+      assignedDate: json['assignedDate'] ?? '',
+      status: json['status'] ?? '',
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'assignmentId': assignmentId,
+      'user': user.toJson(),
+      'branch': branch.toJson(),
+      'assignedDate': assignedDate,
+      'status': status,
+      'notes': notes,
+    };
+  }
+}
+
+class AssignmentHistory {
+  final int assignmentId;
+  final String userName;
+  final String userPn;
+  final String assignedDate;
+  final String? returnedDate;
+  final String status;
+  final String? notes;
+
+  AssignmentHistory({
+    required this.assignmentId,
+    required this.userName,
+    required this.userPn,
+    required this.assignedDate,
+    this.returnedDate,
+    required this.status,
+    this.notes,
+  });
+
+  factory AssignmentHistory.fromJson(Map<String, dynamic> json) {
+    return AssignmentHistory(
+      assignmentId: json['assignmentId'] ?? 0,
+      userName: json['userName'] ?? '',
+      userPn: json['userPn'] ?? '',
+      assignedDate: json['assignedDate'] ?? '',
+      returnedDate: json['returnedDate'],
+      status: json['status'] ?? '',
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'assignmentId': assignmentId,
+      'userName': userName,
+      'userPn': userPn,
+      'assignedDate': assignedDate,
+      'returnedDate': returnedDate,
+      'status': status,
+      'notes': notes,
+    };
+  }
+}
+
+class UserSummary {
+  final int userId;
+  final String name;
+  final String pn;
+  final String position;
+
+  UserSummary({
+    required this.userId,
+    required this.name,
+    required this.pn,
+    required this.position,
+  });
+
+  factory UserSummary.fromJson(Map<String, dynamic> json) {
+    return UserSummary(
+      userId: json['userId'] ?? 0,
+      name: json['name'] ?? '',
+      pn: json['pn'] ?? '',
+      position: json['position'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'name': name,
+      'pn': pn,
+      'position': position,
+    };
+  }
+}
+
+class BranchSummary {
+  final int branchId;
+  final String unitName;
+  final String branchCode;
+
+  BranchSummary({
+    required this.branchId,
+    required this.unitName,
+    required this.branchCode,
+  });
+
+  factory BranchSummary.fromJson(Map<String, dynamic> json) {
+    return BranchSummary(
+      branchId: json['branchId'] ?? 0,
+      unitName: json['unitName'] ?? '',
+      branchCode: json['branchCode'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'branchId': branchId,
+      'unitName': unitName,
+      'branchCode': branchCode,
     };
   }
 }

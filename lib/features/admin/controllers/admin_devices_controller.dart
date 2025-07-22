@@ -5,36 +5,44 @@ import '../models/admin_device_model.dart';
 class AdminDevicesController extends GetxController {
   final ApiService apiService = Get.find<ApiService>();
 
+  // State utama
   var devices = <AdminDeviceModel>[].obs;
-  var isLoading = false.obs;
-  var errorMessage = ''.obs;
-
-  // Pagination
   var currentPage = 1.obs;
   var lastPage = 1.obs;
   var total = 0.obs;
+  var isLoading = false.obs;
+  var errorMessage = ''.obs;
 
-  // Filters
+  // Untuk form (dropdown & validation)
+  var formOptions = {}.obs;
+  var validationRules = {}.obs;
   var searchQuery = ''.obs;
-  var selectedCondition = ''.obs; // Baik, Rusak, Perlu Pengecekan
+  var selectedCondition = ''.obs;
+  @override
+  void onInit() {
+    super.onInit();
+    fetchDevices();
+  }
 
-  /// Ambil daftar perangkat dengan pagination & filter
-  Future<void> fetchDevices({int page = 1, int perPage = 20}) async {
+  // ===========================
+  // FETCH LIST PERANGKAT
+  // ===========================
+  Future<void> fetchDevices({int page = 1}) async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
-
-      final result = await apiService.getDevicesAdmin(
-        search: searchQuery.value,
-        condition: selectedCondition.value,
+      final response = await apiService.getAdminDevices(
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+        condition:
+            selectedCondition.value.isNotEmpty ? selectedCondition.value : null,
         page: page,
-        perPage: perPage,
+        perPage: 20,
       );
 
-      final data = result['data'] as List<dynamic>;
+      final data = response['data'] as List<dynamic>;
       devices.value = data.map((e) => AdminDeviceModel.fromJson(e)).toList();
 
-      final meta = result['meta'] ?? {};
+      final meta = response['meta'] ?? {};
       currentPage.value = meta['currentPage'] ?? 1;
       lastPage.value = meta['lastPage'] ?? 1;
       total.value = meta['total'] ?? devices.length;
@@ -45,83 +53,76 @@ class AdminDevicesController extends GetxController {
     }
   }
 
-  /// Ambil detail perangkat untuk view/edit
-  Future<AdminDeviceModel?> fetchDeviceDetail(int id) async {
+  // ===========================
+  // FETCH DETAIL PERANGKAT
+  // ===========================
+  Future<AdminDeviceModel?> fetchDeviceDetail(int deviceId) async {
     try {
-      final data = await apiService.getDeviceDetailAdmin(id);
+      final data = await apiService.getAdminDeviceDetail(deviceId);
       return AdminDeviceModel.fromJson(data);
     } catch (e) {
-      Get.snackbar('Error', 'Gagal mengambil detail perangkat: $e');
+      Get.snackbar('Error', 'Gagal memuat detail perangkat: $e');
       return null;
     }
   }
 
-  /// Tambah perangkat baru
-  Future<void> createDevice(Map<String, dynamic> formData) async {
+  // ===========================
+  // CRUD PERANGKAT
+  // ===========================
+  Future<bool> createDevice(Map<String, dynamic> payload) async {
     try {
-      isLoading.value = true;
-      await apiService.createDeviceAdmin(
-        brand: formData['brand'],
-        brandName: formData['brandName'],
-        serialNumber: formData['serialNumber'],
-        assetCode: formData['assetCode'],
-        briboxId: formData['briboxId'],
-        condition: formData['condition'],
-        spec1: formData['spec1'],
-        spec2: formData['spec2'],
-        spec3: formData['spec3'],
-        spec4: formData['spec4'],
-        spec5: formData['spec5'],
-        devDate: formData['devDate'],
-      );
-      await fetchDevices();
+      await apiService.createAdminDevice(payload);
+      await fetchDevices(); // Refresh list
       Get.snackbar('Sukses', 'Perangkat berhasil ditambahkan');
+      return true;
     } catch (e) {
       Get.snackbar('Error', 'Gagal menambah perangkat: $e');
-    } finally {
-      isLoading.value = false;
+      return false;
     }
   }
 
-  /// Update perangkat
-  Future<void> updateDevice(int id, Map<String, dynamic> formData) async {
+  Future<bool> updateDevice(int id, Map<String, dynamic> payload) async {
     try {
-      isLoading.value = true;
-      await apiService.updateDeviceAdmin(
-        deviceId: id,
-        brand: formData['brand'],
-        brandName: formData['brandName'],
-        serialNumber: formData['serialNumber'],
-        assetCode: formData['assetCode'],
-        briboxId: formData['briboxId'],
-        condition: formData['condition'],
-        spec1: formData['spec1'],
-        spec2: formData['spec2'],
-        spec3: formData['spec3'],
-        spec4: formData['spec4'],
-        spec5: formData['spec5'],
-        devDate: formData['devDate'],
-      );
-      await fetchDevices();
+      await apiService.updateAdminDevice(id, payload);
+      await fetchDevices(); // Refresh list
       Get.snackbar('Sukses', 'Perangkat berhasil diperbarui');
+      return true;
     } catch (e) {
       Get.snackbar('Error', 'Gagal memperbarui perangkat: $e');
-    } finally {
-      isLoading.value = false;
+      return false;
     }
   }
 
-  /// Hapus perangkat
-  Future<void> deleteDevice(int id) async {
+  Future<bool> deleteDevice(int id) async {
     try {
-      isLoading.value = true;
-      await apiService.deleteDeviceAdmin(id);
-      await fetchDevices();
+      await apiService.deleteAdminDevice(id);
+      await fetchDevices(); // Refresh list
       Get.snackbar('Sukses', 'Perangkat berhasil dihapus');
+      return true;
     } catch (e) {
       Get.snackbar('Error', 'Gagal menghapus perangkat: $e');
-    } finally {
-      isLoading.value = false;
+      return false;
+    }
+  }
+
+  // ===========================
+  // FORM OPTIONS & VALIDATION
+  // ===========================
+  Future<void> loadFormOptions({String? field}) async {
+    try {
+      final options = await apiService.getDeviceFormOptions(field: field);
+      formOptions.assignAll(options);
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal memuat pilihan form: $e');
+    }
+  }
+
+  Future<void> loadValidationRules() async {
+    try {
+      final rules = await apiService.getDeviceValidationRules();
+      validationRules.assignAll(rules);
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal memuat aturan validasi: $e');
     }
   }
 }

@@ -94,7 +94,7 @@ class AdminDeviceDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               FutureBuilder<Map<String, dynamic>>(
-                future: controller.apiService.getDeviceDetailAdmin(device.deviceId),
+                future: controller.apiService.getAdminDeviceDetail(device.deviceId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
