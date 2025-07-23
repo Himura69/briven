@@ -18,8 +18,8 @@ class AdminDeviceModel {
   final String createdBy;
   final String updatedAt;
   final String updatedBy;
+  final String? devDate; // <-- Tambahan
 
-  // Optional: data detail assignment
   final CurrentAssignment? currentAssignment;
   final List<AssignmentHistory> assignmentHistory;
 
@@ -43,6 +43,7 @@ class AdminDeviceModel {
     required this.createdBy,
     required this.updatedAt,
     required this.updatedBy,
+    this.devDate, // <-- Tambahan
     this.currentAssignment,
     this.assignmentHistory = const [],
   });
@@ -68,6 +69,7 @@ class AdminDeviceModel {
       createdBy: json['createdBy'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       updatedBy: json['updatedBy'] ?? '',
+      devDate: json['devDate'], // <-- Tambahan
       currentAssignment: json['currentAssignment'] != null
           ? CurrentAssignment.fromJson(json['currentAssignment'])
           : null,
@@ -99,6 +101,7 @@ class AdminDeviceModel {
       'createdBy': createdBy,
       'updatedAt': updatedAt,
       'updatedBy': updatedBy,
+      'devDate': devDate, // <-- Tambahan
       'currentAssignment': currentAssignment?.toJson(),
       'assignmentHistory': assignmentHistory.map((e) => e.toJson()).toList(),
     };

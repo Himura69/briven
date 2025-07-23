@@ -17,7 +17,6 @@ class AdminDeviceDetailScreen extends StatelessWidget {
     final deviceDetail = Rxn<AdminDeviceModel>();
     final errorMessage = ''.obs;
 
-    // Ambil data detail saat pertama kali load
     Future<void> loadDetail() async {
       try {
         isLoading.value = true;
@@ -35,16 +34,28 @@ class AdminDeviceDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
-        child: AdminNavBar(),
+        child: AppBar(
+          backgroundColor: Colors.blueAccent,
+          title: const Text(
+            "Detail Perangkat",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Get.back(),
+          ),
+          elevation: 0,
+        ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       body: Obx(() {
         if (isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
         if (errorMessage.value.isNotEmpty) {
-          return Center(child: Text(errorMessage.value,
-              style: const TextStyle(color: Colors.red)));
+          return Center(
+              child: Text(errorMessage.value,
+                  style: const TextStyle(color: Colors.red)));
         }
         final device = deviceDetail.value;
         if (device == null) {
@@ -52,78 +63,116 @@ class AdminDeviceDetailScreen extends StatelessWidget {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${device.brand} ${device.brandName}',
-                style: AppStyles.title.copyWith(fontSize: 24, color: Colors.black87),
-              ),
-              const SizedBox(height: 8),
-              Text('Asset Code: ${device.assetCode}'),
-              Text('Serial Number: ${device.serialNumber}'),
-              Text('Kondisi: ${device.condition}'),
-              Text('Kategori: ${device.category}'),
-              const SizedBox(height: 16),
-              // Spesifikasi
-              if (device.spec1 != null) Text('Spec1: ${device.spec1}'),
-              if (device.spec2 != null) Text('Spec2: ${device.spec2}'),
-              if (device.spec3 != null) Text('Spec3: ${device.spec3}'),
-              if (device.spec4 != null) Text('Spec4: ${device.spec4}'),
-              if (device.spec5 != null) Text('Spec5: ${device.spec5}'),
-              const SizedBox(height: 24),
-
-              // Assignment Sekarang
-              if (device.isAssigned && device.assignedTo != null) ...[
-                const Text(
-                  'Sedang Dipinjam',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${device.brand} ${device.brandName}',
+                        style: AppStyles.title
+                            .copyWith(fontSize: 22, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Asset Code: ${device.assetCode}'),
+                      Text('Serial Number: ${device.serialNumber}'),
+                      Text('Kondisi: ${device.condition}'),
+                      Text(
+                        'Kategori: ${device.category.isNotEmpty ? device.category : '-'}',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      if (device.devDate != null)
+                        Text('Tanggal Pembelian: ${device.devDate}'),
+                      const SizedBox(height: 12),
+                      // Spesifikasi Tambahan
+                      ...[
+                        if (device.spec1 != null)
+                          Text('Spesifikasi 1: ${device.spec1}'),
+                        if (device.spec2 != null)
+                          Text('Spesifikasi 2: ${device.spec2}'),
+                        if (device.spec3 != null)
+                          Text('Spesifikasi 3: ${device.spec3}'),
+                        if (device.spec4 != null)
+                          Text('Spesifikasi 4: ${device.spec4}'),
+                        if (device.spec5 != null)
+                          Text('Spesifikasi 5: ${device.spec5}'),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text('Dipinjam oleh: ${device.assignedTo}'),
-                if (device.assignedDate != null)
-                  Text('Tanggal Pinjam: ${device.assignedDate}'),
-              ],
-
-              const SizedBox(height: 24),
-              // Riwayat Assignment
-              const Text(
-                'Riwayat Peminjaman',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 8),
-              FutureBuilder<Map<String, dynamic>>(
-                future: controller.apiService.getAdminDeviceDetail(device.deviceId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData ||
-                      snapshot.data?['assignmentHistory'] == null) {
-                    return const Text('Tidak ada riwayat peminjaman.');
-                  }
-                  final history = snapshot.data!['assignmentHistory'] as List<dynamic>;
-                  if (history.isEmpty) {
-                    return const Text('Tidak ada riwayat peminjaman.');
-                  }
-                  return Column(
-                    children: history.map((item) {
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
-                        child: ListTile(
-                          title: Text('${item['userName']} (${item['userPn']})'),
-                          subtitle: Text(
-                              'Dipinjam: ${item['assignedDate']} - Dikembalikan: ${item['returnedDate'] ?? '-'}'),
-                          trailing: Text(item['status']),
+
+              // Status peminjaman saat ini
+              if (device.isAssigned && device.assignedTo != null)
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 3,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sedang Dipinjam',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w600),
                         ),
-                      );
-                    }).toList(),
-                  );
-                },
+                        const SizedBox(height: 8),
+                        Text('Dipinjam oleh: ${device.assignedTo}'),
+                        if (device.assignedDate != null)
+                          Text('Tanggal Pinjam: ${device.assignedDate}'),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Riwayat Peminjaman
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Riwayat Peminjaman',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      if (device.assignmentHistory.isEmpty)
+                        const Text('Tidak ada riwayat peminjaman.')
+                      else
+                        ...device.assignmentHistory.map((item) {
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            elevation: 1,
+                            child: ListTile(
+                              title: Text('${item.userName} (${item.userPn})'),
+                              subtitle: Text(
+                                  'Dipinjam: ${item.assignedDate} - Dikembalikan: ${item.returnedDate ?? '-'}'),
+                              trailing: Text(item.status),
+                            ),
+                          );
+                        }).toList(),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
