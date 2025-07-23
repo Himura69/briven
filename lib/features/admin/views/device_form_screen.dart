@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_styles.dart';
-import '../../../core/widgets/admin_nav_bar.dart';
 import '../controllers/admin_devices_controller.dart';
 import '../models/admin_device_model.dart';
 
@@ -17,7 +16,6 @@ class DeviceFormScreen extends StatefulWidget {
 
 class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final controller = Get.find<AdminDevicesController>();
-
   final _formKey = GlobalKey<FormState>();
 
   final brandController = TextEditingController();
@@ -31,7 +29,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final spec5Controller = TextEditingController();
   final devDateController = TextEditingController();
 
-  // Bribox (kategori) — simpan ID & Label terpisah
+  // Bribox (kategori): simpan ID dan label terpisah
   final briboxId = RxString('');
   final briboxLabel = RxString('');
 
@@ -40,7 +38,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
 
   bool get isEditing => widget.device != null;
 
-  // Controller pencarian Bribox
   final TextEditingController _briboxSearchController = TextEditingController();
   final RxList<Map<String, dynamic>> _filteredBriboxes =
       <Map<String, dynamic>>[].obs;
@@ -65,15 +62,21 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       status.value =
           widget.device!.isAssigned ? "Digunakan" : "Tidak Digunakan";
 
-      // Ambil semua kategori untuk cari ID berdasarkan label
+      // Cari bribox ID berdasarkan label kategori dari device
       final allBriboxes =
           (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
               .cast<Map<String, dynamic>>();
-      final matched = allBriboxes.firstWhere(
-          (item) => item['label'] == widget.device!.category,
-          orElse: () => {});
-      briboxId.value = matched['value'] ?? ''; // Simpan ID yang valid
-      briboxLabel.value = widget.device!.category; // Tampilkan nama
+      final match = allBriboxes.firstWhereOrNull(
+        (item) => item['label'] == widget.device!.category,
+      );
+
+      if (match != null) {
+        briboxId.value = match['value'] ?? '';
+        briboxLabel.value = match['label'] ?? '';
+      } else {
+        // fallback: tetap tampilkan kategori lama sebagai label
+        briboxLabel.value = widget.device!.category;
+      }
 
       if (widget.device!.assignedDate != null) {
         devDateController.text = widget.device!.assignedDate!;
@@ -116,7 +119,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-
     if (picked != null) {
       final formatted = DateFormat('yyyy-MM-dd').format(picked);
       setState(() {
@@ -133,7 +135,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       "brand_name": brandNameController.text,
       "serial_number": serialController.text,
       "asset_code": assetCodeController.text,
-      "bribox_id": briboxId.value, // ID dikirim ke backend
+      "bribox_id": briboxId.value, // HARUS ID valid
       "condition": condition.value,
       "status": status.value,
       "spec1": spec1Controller.text,
@@ -197,8 +199,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                         title: Text(item['label'] ?? ''),
                         onTap: () {
                           briboxId.value = item['value'] ?? ''; // ID untuk API
-                          briboxLabel.value =
-                              item['label'] ?? ''; // Nama ditampilkan
+                          briboxLabel.value = item['label'] ?? '';
                           Get.back();
                         },
                       );
@@ -239,7 +240,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Brand Dropdown
                 DropdownButtonFormField<String>(
                   value: brandController.text.isNotEmpty
                       ? brandController.text
@@ -251,9 +251,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                           ))
                       .toList(),
                   decoration: const InputDecoration(labelText: 'Brand'),
-                  onChanged: (val) {
-                    if (val != null) brandController.text = val;
-                  },
+                  onChanged: (val) => brandController.text = val ?? '',
                   validator: (val) {
                     if ((rules['rules']?['brand'] ?? []).contains('required') &&
                         (val == null || val.isEmpty)) {
@@ -264,8 +262,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Brand Name Dropdown
                 DropdownButtonFormField<String>(
                   value: brandNameController.text.isNotEmpty
                       ? brandNameController.text
@@ -278,9 +274,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                       .toList(),
                   decoration:
                       const InputDecoration(labelText: 'Brand Name / Model'),
-                  onChanged: (val) {
-                    if (val != null) brandNameController.text = val;
-                  },
+                  onChanged: (val) => brandNameController.text = val ?? '',
                   validator: (val) {
                     if ((rules['rules']?['brand_name'] ?? [])
                             .contains('required') &&
@@ -292,8 +286,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Serial Number
                 TextFormField(
                   controller: serialController,
                   decoration: const InputDecoration(labelText: 'Serial Number'),
@@ -308,8 +300,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Asset Code
                 TextFormField(
                   controller: assetCodeController,
                   decoration: const InputDecoration(labelText: 'Asset Code'),
@@ -324,20 +314,15 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Bribox Dropdown (manual search)
                 GestureDetector(
                   onTap: _openBriboxSearchDialog,
                   child: AbsorbPointer(
                     child: TextFormField(
+                      controller:
+                          TextEditingController(text: briboxLabel.value),
                       decoration: const InputDecoration(
                         labelText: 'Kategori (Bribox)',
                         suffixIcon: Icon(Icons.arrow_drop_down),
-                      ),
-                      controller: TextEditingController(
-                        text: briboxLabel.value.isNotEmpty
-                            ? briboxLabel.value
-                            : '',
                       ),
                       validator: (val) {
                         if ((rules['rules']?['bribox_id'] ?? [])
@@ -352,8 +337,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Condition Dropdown
                 DropdownButtonFormField<String>(
                   value: condition.value.isNotEmpty ? condition.value : null,
                   items: (options['conditions'] as List<dynamic>? ?? [])
@@ -366,8 +349,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   onChanged: (val) => condition.value = val ?? '',
                 ),
                 const SizedBox(height: 16),
-
-                // Status Dropdown
                 DropdownButtonFormField<String>(
                   value: status.value.isNotEmpty ? status.value : null,
                   items: (options['statuses'] as List<dynamic>? ?? [])
@@ -380,8 +361,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   onChanged: (val) => status.value = val ?? '',
                 ),
                 const SizedBox(height: 16),
-
-                // Development Date
                 TextFormField(
                   controller: devDateController,
                   readOnly: true,
@@ -392,8 +371,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 16),
-
-                // Spesifikasi tambahan
                 TextFormField(
                     controller: spec1Controller,
                     decoration:
@@ -419,7 +396,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                     decoration:
                         const InputDecoration(labelText: 'Spesifikasi 5')),
                 const SizedBox(height: 24),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
