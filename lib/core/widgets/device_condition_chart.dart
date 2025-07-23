@@ -17,30 +17,40 @@ class DeviceConditionChart extends StatelessWidget {
     }
 
     final total = data.fold<int>(0, (sum, item) => sum + item.count);
-    final colors = [Colors.green, Colors.red, Colors.orange];
+
+    // Palet warna konsisten & modern
+    final colors = [
+      Colors.greenAccent.shade400, // Baik
+      Colors.redAccent.shade400, // Rusak
+      Colors.orangeAccent.shade400 // Perlu Pengecekan
+    ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
           SizedBox(
-            height: 180,
+            height: 200,
             child: PieChart(
               PieChartData(
-                sectionsSpace: 4,
-                centerSpaceRadius: 40,
+                sectionsSpace: 2,
+                centerSpaceRadius: 50,
+                borderData: FlBorderData(show: false),
                 sections: List.generate(data.length, (i) {
                   final percentage =
                       total == 0 ? 0 : (data[i].count / total * 100);
@@ -48,23 +58,31 @@ class DeviceConditionChart extends StatelessWidget {
                     color: colors[i % colors.length],
                     value: data[i].count.toDouble(),
                     title: '${percentage.toStringAsFixed(1)}%',
-                    radius: 60,
+                    radius: 65,
                     titleStyle: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 2,
+                          offset: Offset(1, 1),
+                        )
+                      ],
                     ),
                   );
                 }),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
 
           // LEGEND
           Wrap(
             alignment: WrapAlignment.center,
-            spacing: 16,
+            spacing: 20,
+            runSpacing: 10,
             children: List.generate(data.length, (i) {
               return Row(
                 mainAxisSize: MainAxisSize.min,
@@ -75,12 +93,24 @@ class DeviceConditionChart extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: colors[i % colors.length],
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors[i % colors.length].withOpacity(0.4),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
                     '${data[i].condition} (${data[i].count})',
-                    style: const TextStyle(color: Colors.black87, fontSize: 13),
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Poppins',
+                    ),
                   ),
                 ],
               );

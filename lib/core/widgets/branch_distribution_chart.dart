@@ -12,7 +12,7 @@ class BranchDistributionChart extends StatelessWidget {
     if (data.isEmpty) {
       return const Text(
         'Tidak ada data distribusi cabang',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: Colors.black54),
       );
     }
 
@@ -20,18 +20,36 @@ class BranchDistributionChart extends StatelessWidget {
         (data.map((e) => e.count).reduce((a, b) => a > b ? a : b)).toDouble();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: SizedBox(
-        height: 250,
+        height: 280,
         child: BarChart(
           BarChartData(
             maxY: maxY + 5,
-            gridData: FlGridData(show: false),
+            gridData: FlGridData(
+              show: true,
+              drawHorizontalLine: true,
+              horizontalInterval: 5,
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: Colors.grey.withOpacity(0.2),
+                strokeWidth: 1,
+              ),
+            ),
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
               topTitles:
@@ -39,7 +57,11 @@ class BranchDistributionChart extends StatelessWidget {
               rightTitles:
                   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               leftTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: true, reservedSize: 28),
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 32,
+                  getTitlesWidget: _leftTitleWidgets,
+                ),
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
@@ -47,10 +69,16 @@ class BranchDistributionChart extends StatelessWidget {
                   getTitlesWidget: (value, meta) {
                     final index = value.toInt();
                     if (index >= 0 && index < data.length) {
-                      return Text(
-                        data[index].branchName,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 12),
+                      return Transform.rotate(
+                        angle: -0.5, // Rotasi 45° agar tidak bertabrakan
+                        child: Text(
+                          data[index].branchName,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       );
                     }
                     return const SizedBox();
@@ -64,27 +92,46 @@ class BranchDistributionChart extends StatelessWidget {
                 barRods: [
                   BarChartRodData(
                     toY: data[i].count.toDouble(),
-                    color: Colors.blueAccent,
-                    width: 22,
-                    borderRadius: BorderRadius.circular(4),
+                    width: 20,
+                    borderRadius: BorderRadius.circular(6),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.blueAccent.shade400,
+                        Colors.lightBlue.shade200
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                    backDrawRodData: BackgroundBarChartRodData(
+                      show: true,
+                      toY: maxY + 5,
+                      color: Colors.grey.shade200,
+                    ),
                   ),
                 ],
-                showingTooltipIndicators: [0],
               );
             }),
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
-                tooltipPadding: const EdgeInsets.all(6),
-                tooltipRoundedRadius: 6,
-                tooltipMargin: 8,
+                tooltipPadding: const EdgeInsets.all(8),
+                tooltipRoundedRadius: 8,
+                tooltipMargin: 10,
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   return BarTooltipItem(
-                    '${data[groupIndex].branchName}\n${data[groupIndex].count} perangkat',
+                    '${data[groupIndex].branchName}\n'
+                    '${data[groupIndex].count} perangkat',
                     const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 2,
+                          offset: Offset(1, 1),
+                        )
+                      ],
                     ),
                   );
                 },
@@ -93,6 +140,18 @@ class BranchDistributionChart extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  static Widget _leftTitleWidgets(double value, TitleMeta meta) {
+    return Text(
+      value.toInt().toString(),
+      style: const TextStyle(
+        color: Colors.black54,
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+      ),
+      textAlign: TextAlign.left,
     );
   }
 }

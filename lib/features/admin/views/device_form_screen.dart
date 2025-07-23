@@ -65,9 +65,15 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       status.value =
           widget.device!.isAssigned ? "Digunakan" : "Tidak Digunakan";
 
-      // Set kategori (label & ID) jika ada
-      briboxLabel.value = widget.device!.category;
-      briboxId.value = widget.device!.category; // fallback jika ID tidak ada
+      // Ambil semua kategori untuk cari ID berdasarkan label
+      final allBriboxes =
+          (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      final matched = allBriboxes.firstWhere(
+          (item) => item['label'] == widget.device!.category,
+          orElse: () => {});
+      briboxId.value = matched['value'] ?? ''; // Simpan ID yang valid
+      briboxLabel.value = widget.device!.category; // Tampilkan nama
 
       if (widget.device!.assignedDate != null) {
         devDateController.text = widget.device!.assignedDate!;
