@@ -18,11 +18,19 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
   int _selectedIndex = 0;
   final ApiService apiService = Get.find<ApiService>();
 
-  final List<Widget> _pages = [
+  final List<Widget> _pages = const [
     AdminDashboardScreen(),
     AdminDevicesScreen(),
     LoanManagementScreen(),
     UserManagementScreen(),
+  ];
+
+  // Judul AppBar berdasarkan tab
+  final List<String> _titles = const [
+    'Dashboard Admin',
+    'Device Management',
+    'Device Assignments',
+    'User Management',
   ];
 
   void _onItemTapped(int index) {
@@ -36,54 +44,95 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
       await apiService.logout();
       Get.offAllNamed('/login');
     } catch (e) {
-      Get.snackbar('Error', 'Gagal logout: $e');
+      Get.snackbar('Error', 'Gagal logout: $e',
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
         backgroundColor: AppColors.primary,
-        title: const Text(
-          'Admin Panel',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+        elevation: 0,
+        titleSpacing: 16,
+        centerTitle: false,
+        title: Row(
+          children: [
+            Icon(
+              _selectedIndex == 0
+                  ? Icons.dashboard_rounded
+                  : _selectedIndex == 1
+                      ? Icons.devices_other_rounded
+                      : _selectedIndex == 2
+                          ? Icons.assignment_ind_rounded
+                          : Icons.people_alt_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _titles[_selectedIndex],
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                fontSize: 20,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout_rounded, color: Colors.white),
             onPressed: _logout,
           ),
         ],
       ),
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.devices),
-            label: 'Devices',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Device Assignment',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Users',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          currentIndex: _selectedIndex,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: Colors.grey.shade500,
+          selectedLabelStyle: const TextStyle(
+              fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(
+              fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_rounded),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.devices_other_rounded),
+              label: 'Devices',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment_ind_rounded),
+              label: 'Assignments',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_alt_rounded),
+              label: 'Users',
+            ),
+          ],
+        ),
       ),
     );
   }

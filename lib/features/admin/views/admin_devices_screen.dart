@@ -15,8 +15,7 @@ class AdminDevicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final AdminDevicesController controller = Get.put(AdminDevicesController());
 
-    // Fetch data awal
-    controller.fetchDevices();
+    controller.fetchDevices(); // Ambil data awal
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 900;
@@ -27,36 +26,49 @@ class AdminDevicesScreen extends StatelessWidget {
         preferredSize: const Size.fromHeight(60),
         child: AdminNavBar(),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FB),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Get.to(() => DeviceFormScreen(), transition: Transition.fadeIn);
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Perangkat'),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Tambah Perangkat',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: EdgeInsets.all(isWeb
             ? 24.0
             : isTablet
-                ? 16.0
-                : 12.0),
+                ? 20.0
+                : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Device Management',
-              style: AppStyles.title.copyWith(
-                fontSize: isWeb
-                    ? 22
-                    : isTablet
-                        ? 20
-                        : 18,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
+            // Title Section
+            // Row(
+            //   children: [
+            //     const Icon(Icons.devices_other_rounded,
+            //         size: 28, color: Colors.blueAccent),
+            //     const SizedBox(width: 8),
+            //     Text(
+            //       'Device Management',
+            //       style: AppStyles.title.copyWith(
+            //         fontSize: isWeb
+            //             ? 24
+            //             : isTablet
+            //                 ? 22
+            //                 : 20,
+            //         color: Colors.black87,
+            //         fontWeight: FontWeight.w700,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            const SizedBox(height: 20),
+
             // Search & Filter Row
             Row(
               children: [
@@ -68,37 +80,58 @@ class AdminDevicesScreen extends StatelessWidget {
                     },
                     decoration: InputDecoration(
                       hintText: 'Cari perangkat...',
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(
+                            color: Colors.blueAccent, width: 1.2),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                DropdownButton<String>(
-                  value: controller.selectedCondition.value.isEmpty
-                      ? null
-                      : controller.selectedCondition.value,
-                  hint: const Text('Kondisi'),
-                  items: const [
-                    DropdownMenuItem(value: 'Baik', child: Text('Baik')),
-                    DropdownMenuItem(value: 'Rusak', child: Text('Rusak')),
-                    DropdownMenuItem(
-                        value: 'Perlu Pengecekan',
-                        child: Text('Perlu Pengecekan')),
-                  ],
-                  onChanged: (value) {
-                    controller.selectedCondition.value = value ?? '';
-                    controller.fetchDevices();
-                  },
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: Obx(() => DropdownButton<String>(
+                          value: controller.selectedCondition.value.isEmpty
+                              ? null
+                              : controller.selectedCondition.value,
+                          hint: const Text('Kondisi'),
+                          icon: const Icon(Icons.filter_list,
+                              color: Colors.blueAccent),
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'Baik', child: Text('Baik')),
+                            DropdownMenuItem(
+                                value: 'Rusak', child: Text('Rusak')),
+                            DropdownMenuItem(
+                                value: 'Perlu Pengecekan',
+                                child: Text('Perlu Pengecekan')),
+                          ],
+                          onChanged: (value) {
+                            controller.selectedCondition.value = value ?? '';
+                            controller.fetchDevices();
+                          },
+                        )),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+
             // Device List
             Expanded(
               child: Obx(() {
@@ -112,14 +145,19 @@ class AdminDevicesScreen extends StatelessWidget {
                   );
                 }
                 if (controller.devices.isEmpty) {
-                  return const Center(child: Text('Tidak ada perangkat.'));
+                  return const Center(
+                      child: Text(
+                    'Tidak ada perangkat.',
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  ));
                 }
                 return ListView.builder(
+                  physics: const BouncingScrollPhysics(),
                   itemCount: controller.devices.length,
                   itemBuilder: (context, index) {
                     final AdminDeviceModel device = controller.devices[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
+                      padding: const EdgeInsets.only(bottom: 14.0),
                       child: GestureDetector(
                         onTap: () {
                           Get.to(
@@ -144,30 +182,46 @@ class AdminDevicesScreen extends StatelessWidget {
               }),
             ),
             const SizedBox(height: 8),
-            // Pagination
+
+            // Pagination Section
             Obx(() {
               if (controller.lastPage.value <= 1) return const SizedBox();
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: controller.currentPage.value > 1
-                        ? () => controller.fetchDevices(
-                            page: controller.currentPage.value - 1)
-                        : null,
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  Text(
-                      '${controller.currentPage.value} / ${controller.lastPage.value}'),
-                  IconButton(
-                    onPressed:
-                        controller.currentPage.value < controller.lastPage.value
-                            ? () => controller.fetchDevices(
-                                page: controller.currentPage.value + 1)
-                            : null,
-                    icon: const Icon(Icons.arrow_forward),
-                  ),
-                ],
+              return Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: controller.currentPage.value > 1
+                          ? () => controller.fetchDevices(
+                              page: controller.currentPage.value - 1)
+                          : null,
+                      icon: const Icon(Icons.chevron_left,
+                          color: Colors.blueAccent),
+                    ),
+                    Text(
+                      '${controller.currentPage.value} / ${controller.lastPage.value}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    IconButton(
+                      onPressed: controller.currentPage.value <
+                              controller.lastPage.value
+                          ? () => controller.fetchDevices(
+                              page: controller.currentPage.value + 1)
+                          : null,
+                      icon: const Icon(Icons.chevron_right,
+                          color: Colors.blueAccent),
+                    ),
+                  ],
+                ),
               );
             }),
           ],

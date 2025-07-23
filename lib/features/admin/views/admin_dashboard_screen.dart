@@ -25,7 +25,7 @@ class AdminDashboardScreen extends StatelessWidget {
         preferredSize: const Size.fromHeight(60),
         child: AdminNavBar(),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FB), // Background soft abu-abu
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(isWeb
@@ -39,19 +39,26 @@ class AdminDashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // HEADER
-                Text(
-                  'Dashboard Admin',
-                  style: AppStyles.title.copyWith(
-                    fontSize: isWeb
-                        ? 24
-                        : isTablet
-                            ? 22
-                            : 20,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.dashboard_rounded,
+                        size: 28, color: Colors.blueAccent),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Dashboard Admin',
+                      style: AppStyles.title.copyWith(
+                        fontSize: isWeb
+                            ? 26
+                            : isTablet
+                                ? 24
+                                : 22,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // KPI SECTION
                 Obx(() {
@@ -79,7 +86,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       KpiCard(
                         title: 'Total Devices',
                         value: kpi.totalDevices.toString(),
-                        color: Colors.blue,
+                        color: Colors.blueAccent,
                       ),
                       KpiCard(
                         title: 'In Use',
@@ -94,28 +101,35 @@ class AdminDashboardScreen extends StatelessWidget {
                       KpiCard(
                         title: 'Damaged',
                         value: kpi.damaged.toString(),
-                        color: Colors.red,
+                        color: Colors.redAccent,
                       ),
                     ],
                   );
                 }),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
 
-                // PIE CHART
-                Text(
-                  'Kondisi Perangkat',
-                  style: AppStyles.title.copyWith(
-                    fontSize: isWeb
-                        ? 20
-                        : isTablet
-                            ? 18
-                            : 16,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // DEVICE CONDITION CHART
+                Row(
+                  children: [
+                    const Icon(Icons.pie_chart_rounded,
+                        size: 22, color: Colors.blueAccent),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Kondisi Perangkat',
+                      style: AppStyles.title.copyWith(
+                        fontSize: isWeb
+                            ? 20
+                            : isTablet
+                                ? 18
+                                : 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Obx(() {
                   final chart = controller.chartData.value;
                   if (chart == null || chart.deviceConditions.isEmpty) {
@@ -125,29 +139,45 @@ class AdminDashboardScreen extends StatelessWidget {
                     );
                   }
                   return Center(
-                    child: SizedBox(
-                      width: 280,
-                      child: DeviceConditionChart(data: chart.deviceConditions),
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: SizedBox(
+                          width: 300,
+                          child: DeviceConditionChart(
+                              data: chart.deviceConditions),
+                        ),
+                      ),
                     ),
                   );
                 }),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
 
-                // BAR CHART
-                Text(
-                  'Distribusi Perangkat per Cabang',
-                  style: AppStyles.title.copyWith(
-                    fontSize: isWeb
-                        ? 20
-                        : isTablet
-                            ? 18
-                            : 16,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // BRANCH DISTRIBUTION CHART
+                Row(
+                  children: [
+                    const Icon(Icons.bar_chart_rounded,
+                        size: 22, color: Colors.blueAccent),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Distribusi Perangkat per Cabang',
+                      style: AppStyles.title.copyWith(
+                        fontSize: isWeb
+                            ? 20
+                            : isTablet
+                                ? 18
+                                : 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Obx(() {
                   final chart = controller.chartData.value;
                   if (chart == null || chart.devicesPerBranch.isEmpty) {
@@ -156,25 +186,41 @@ class AdminDashboardScreen extends StatelessWidget {
                       style: TextStyle(color: Colors.black54),
                     );
                   }
-                  return BranchDistributionChart(data: chart.devicesPerBranch);
+                  return Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child:
+                          BranchDistributionChart(data: chart.devicesPerBranch),
+                    ),
+                  );
                 }),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
 
                 // ACTIVITY LOG
-                Text(
-                  'Activity Log',
-                  style: AppStyles.title.copyWith(
-                    fontSize: isWeb
-                        ? 20
-                        : isTablet
-                            ? 18
-                            : 16,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.history_rounded,
+                        size: 22, color: Colors.blueAccent),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Activity Log',
+                      style: AppStyles.title.copyWith(
+                        fontSize: isWeb
+                            ? 20
+                            : isTablet
+                                ? 18
+                                : 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Obx(() {
                   final kpi = controller.kpiData.value;
                   if (kpi == null || kpi.activityLog.isEmpty) {

@@ -31,11 +31,19 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final spec5Controller = TextEditingController();
   final devDateController = TextEditingController();
 
-  final bribox = RxString('');
+  // Bribox (kategori) — simpan ID & Label terpisah
+  final briboxId = RxString('');
+  final briboxLabel = RxString('');
+
   final condition = RxString('');
   final status = RxString('');
 
   bool get isEditing => widget.device != null;
+
+  // Controller pencarian Bribox
+  final TextEditingController _briboxSearchController = TextEditingController();
+  final RxList<Map<String, dynamic>> _filteredBriboxes =
+      <Map<String, dynamic>>[].obs;
 
   @override
   void initState() {
@@ -54,14 +62,29 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       spec4Controller.text = widget.device!.spec4 ?? '';
       spec5Controller.text = widget.device!.spec5 ?? '';
       condition.value = widget.device!.condition;
-      bribox.value = widget.device!.category;
       status.value =
           widget.device!.isAssigned ? "Digunakan" : "Tidak Digunakan";
+
+      // Set kategori (label & ID) jika ada
+      briboxLabel.value = widget.device!.category;
+      briboxId.value = widget.device!.category; // fallback jika ID tidak ada
 
       if (widget.device!.assignedDate != null) {
         devDateController.text = widget.device!.assignedDate!;
       }
     }
+
+    _briboxSearchController.addListener(() {
+      final allBriboxes =
+          (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      final query = _briboxSearchController.text.toLowerCase();
+      _filteredBriboxes.value = allBriboxes
+          .where((item) =>
+              item['label'].toString().toLowerCase().contains(query) ||
+              item['value'].toString().toLowerCase().contains(query))
+          .toList();
+    });
   }
 
   @override
@@ -76,6 +99,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     spec4Controller.dispose();
     spec5Controller.dispose();
     devDateController.dispose();
+    _briboxSearchController.dispose();
     super.dispose();
   }
 
@@ -103,7 +127,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       "brand_name": brandNameController.text,
       "serial_number": serialController.text,
       "asset_code": assetCodeController.text,
-      "bribox_id": bribox.value,
+      "bribox_id": briboxId.value, // ID dikirim ke backend
       "condition": condition.value,
       "status": status.value,
       "spec1": spec1Controller.text,
@@ -125,12 +149,77 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     if (success) Get.back();
   }
 
+  void _openBriboxSearchDialog() {
+    final allBriboxes =
+        (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
+            .cast<Map<String, dynamic>>();
+    _filteredBriboxes.value = allBriboxes;
+
+    Get.dialog(
+      Dialog(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          height: 400,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Pilih Kategori (Bribox)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _briboxSearchController,
+                decoration: const InputDecoration(
+                  hintText: 'Cari kategori...',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Obx(() {
+                  if (_filteredBriboxes.isEmpty) {
+                    return const Center(
+                        child: Text('Kategori tidak ditemukan'));
+                  }
+                  return ListView.builder(
+                    itemCount: _filteredBriboxes.length,
+                    itemBuilder: (context, index) {
+                      final item = _filteredBriboxes[index];
+                      return ListTile(
+                        title: Text(item['label'] ?? ''),
+                        onTap: () {
+                          briboxId.value = item['value'] ?? ''; // ID untuk API
+                          briboxLabel.value =
+                              item['label'] ?? ''; // Nama ditampilkan
+                          Get.back();
+                        },
+                      );
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AdminNavBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          isEditing ? 'Edit Perangkat' : 'Tambah Perangkat',
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+        ),
       ),
       backgroundColor: Colors.white,
       body: Obx(() {
@@ -144,13 +233,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  isEditing ? 'Edit Perangkat' : 'Tambah Perangkat',
-                  style: AppStyles.title
-                      .copyWith(fontSize: 22, color: Colors.black87),
-                ),
-                const SizedBox(height: 24),
-
                 // Brand Dropdown
                 DropdownButtonFormField<String>(
                   value: brandController.text.isNotEmpty
@@ -237,27 +319,31 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Bribox Dropdown
-                DropdownButtonFormField<String>(
-                  value: bribox.value.isNotEmpty ? bribox.value : null,
-                  items: (options['briboxes'] as List<dynamic>? ?? [])
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['label']),
-                          ))
-                      .toList(),
-                  decoration:
-                      const InputDecoration(labelText: 'Kategori (Bribox)'),
-                  onChanged: (val) => bribox.value = val ?? '',
-                  validator: (val) {
-                    if ((rules['rules']?['bribox_id'] ?? [])
-                            .contains('required') &&
-                        (val == null || val.isEmpty)) {
-                      return rules['messages']?['bribox_id.required'] ??
-                          'Kategori wajib diisi';
-                    }
-                    return null;
-                  },
+                // Bribox Dropdown (manual search)
+                GestureDetector(
+                  onTap: _openBriboxSearchDialog,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Kategori (Bribox)',
+                        suffixIcon: Icon(Icons.arrow_drop_down),
+                      ),
+                      controller: TextEditingController(
+                        text: briboxLabel.value.isNotEmpty
+                            ? briboxLabel.value
+                            : '',
+                      ),
+                      validator: (val) {
+                        if ((rules['rules']?['bribox_id'] ?? [])
+                                .contains('required') &&
+                            (briboxId.value.isEmpty)) {
+                          return rules['messages']?['bribox_id.required'] ??
+                              'Kategori wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -289,19 +375,19 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Development Date (Date Picker)
+                // Development Date
                 TextFormField(
                   controller: devDateController,
                   readOnly: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tanggal Pembelian/Produksi',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 16),
 
-                // Spesifikasi Tambahan
+                // Spesifikasi tambahan
                 TextFormField(
                     controller: spec1Controller,
                     decoration:
@@ -328,7 +414,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                         const InputDecoration(labelText: 'Spesifikasi 5')),
                 const SizedBox(height: 24),
 
-                // Submit Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
