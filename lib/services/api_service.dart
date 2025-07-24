@@ -3,7 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'dart:convert'; // Ditambahkan untuk jsonEncode
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.118:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.44:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -349,6 +349,71 @@ class ApiService extends GetConnect {
     if (response.status.hasError) {
       throw Exception(
           response.body?['message'] ?? 'Gagal mengambil validation rules');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  // Tambahan di ApiService
+  Future<Map<String, dynamic>> getAdminAssignments({
+    String? search,
+    String? status,
+    int? branchId,
+    bool activeOnly = false,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final queryParams = [
+      if (search != null && search.isNotEmpty) 'search=$search',
+      if (status != null && status.isNotEmpty) 'status=$status',
+      if (branchId != null) 'branchId=$branchId',
+      if (activeOnly) 'activeOnly=true',
+      'page=$page',
+      'perPage=$perPage',
+    ].join('&');
+
+    final response = await get('/admin/device-assignments?$queryParams');
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal mengambil assignments');
+    }
+    return response.body ?? {};
+  }
+
+  Future<Map<String, dynamic>> getAdminAssignmentDetail(int id) async {
+    final response = await get('/admin/device-assignments/$id');
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal mengambil detail assignment');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  Future<Map<String, dynamic>> createAdminAssignment(
+      Map<String, dynamic> payload) async {
+    final response = await post('/admin/device-assignments', payload);
+    if (response.status.hasError) {
+      throw Exception(response.body?['message'] ?? 'Gagal membuat assignment');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  Future<Map<String, dynamic>> updateAdminAssignment(
+      int id, Map<String, dynamic> payload) async {
+    final response = await put('/admin/device-assignments/$id', payload);
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal memperbarui assignment');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  Future<Map<String, dynamic>> returnAdminAssignment(
+      int id, Map<String, dynamic> payload) async {
+    final response =
+        await post('/admin/device-assignments/$id/return', payload);
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal mengembalikan perangkat');
     }
     return response.body?['data'] ?? {};
   }

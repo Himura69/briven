@@ -16,6 +16,18 @@ class AdminDeviceCard extends StatelessWidget {
     this.onFilterByCategory,
   });
 
+  // Warna berdasarkan kondisi perangkat
+  Color _conditionColor(String condition) {
+    switch (condition.toLowerCase()) {
+      case 'rusak':
+        return Colors.redAccent;
+      case 'perlu pengecekan':
+        return Colors.grey;
+      default:
+        return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -30,7 +42,7 @@ class AdminDeviceCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon perangkat di kiri
+            // Ikon perangkat
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -42,7 +54,7 @@ class AdminDeviceCard extends StatelessWidget {
             ),
             const SizedBox(width: 16),
 
-            // Info perangkat di tengah
+            // Detail perangkat
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +75,6 @@ class AdminDeviceCard extends StatelessWidget {
 
                   // Asset Code
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.qr_code, size: 16, color: Colors.grey),
                       const SizedBox(width: 6),
@@ -71,9 +82,7 @@ class AdminDeviceCard extends StatelessWidget {
                         child: Text(
                           'Asset Code: ${device.assetCode}',
                           style: const TextStyle(color: Colors.black54),
-                          softWrap: true,
                           overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
                       ),
                     ],
@@ -82,7 +91,6 @@ class AdminDeviceCard extends StatelessWidget {
 
                   // Serial Number
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.confirmation_number,
                           size: 16, color: Colors.grey),
@@ -91,36 +99,34 @@ class AdminDeviceCard extends StatelessWidget {
                         child: Text(
                           'Serial: ${device.serialNumber}',
                           style: const TextStyle(color: Colors.black54),
-                          softWrap: true,
                           overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
 
-                  // Kondisi
+                  // Kondisi dengan warna sesuai status
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.info_outline,
-                          size: 16, color: Colors.grey),
+                      Icon(Icons.circle,
+                          size: 14, color: _conditionColor(device.condition)),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
                           'Kondisi: ${device.condition}',
-                          style: const TextStyle(color: Colors.black54),
-                          softWrap: true,
+                          style: TextStyle(
+                            color: _conditionColor(device.condition),
+                            fontWeight: FontWeight.w600,
+                          ),
                           overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
 
-                  // Kategori sebagai Chip (klik untuk filter)
+                  // Kategori sebagai chip interaktif
                   GestureDetector(
                     onTap: () {
                       if (onFilterByCategory != null &&
@@ -130,10 +136,17 @@ class AdminDeviceCard extends StatelessWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -141,21 +154,14 @@ class AdminDeviceCard extends StatelessWidget {
                           const Icon(Icons.category_rounded,
                               size: 16, color: Colors.blueAccent),
                           const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              device.category.isNotEmpty
-                                  ? device.category
-                                  : 'Tidak ada kategori',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: device.category.isNotEmpty
-                                    ? Colors.blueAccent
-                                    : Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                          Text(
+                            device.category.isNotEmpty
+                                ? device.category
+                                : 'Tidak ada kategori',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -164,34 +170,39 @@ class AdminDeviceCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Status assignment
+                  // Status pinjam (User)
                   if (device.isAssigned && device.assignedTo != null)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.person,
-                            size: 16, color: Colors.orange),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Dipinjam oleh: ${device.assignedTo}',
-                            style: const TextStyle(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.w500),
-                            softWrap: true,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.person,
+                              size: 16, color: Colors.orange),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Dipinjam: ${device.assignedTo} (User)',
+                              style: const TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                 ],
               ),
             ),
 
-            // Tombol aksi (Edit & Delete)
+            // Tombol Edit & Delete
             Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.orangeAccent),
@@ -202,22 +213,77 @@ class AdminDeviceCard extends StatelessWidget {
                   icon: const Icon(Icons.delete_forever, color: Colors.red),
                   onPressed: () async {
                     final confirmed = await Get.dialog<bool>(
-                      AlertDialog(
-                        title: const Text('Konfirmasi Hapus'),
-                        content: Text(
-                            'Apakah Anda yakin ingin menghapus perangkat ${device.assetCode}?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(result: false),
-                            child: const Text('Batal'),
+                      Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          ElevatedButton(
-                            onPressed: () => Get.back(result: true),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red),
-                            child: const Text('Hapus'),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.warning_amber_rounded,
+                                  size: 48, color: Colors.redAccent),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Hapus Perangkat?',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Apakah Anda yakin ingin menghapus perangkat "${device.assetCode}"? Tindakan ini tidak bisa dibatalkan.',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.black54),
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      side:
+                                          const BorderSide(color: Colors.grey),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 10),
+                                    ),
+                                    onPressed: () => Get.back(result: false),
+                                    child: const Text('Batal',
+                                        style:
+                                            TextStyle(color: Colors.black87)),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.redAccent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 10),
+                                    ),
+                                    onPressed: () => Get.back(result: true),
+                                    child: const Text('Hapus',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     );
                     if (confirmed == true && onDelete != null) {

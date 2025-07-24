@@ -73,10 +73,8 @@ class AdminDevicesController extends GetxController {
     try {
       await apiService.createAdminDevice(payload);
       await fetchDevices(); // Refresh list
-      Get.snackbar('Sukses', 'Perangkat berhasil ditambahkan');
       return true;
     } catch (e) {
-      Get.snackbar('Error', 'Gagal menambah perangkat: $e');
       return false;
     }
   }
@@ -85,10 +83,10 @@ class AdminDevicesController extends GetxController {
     try {
       await apiService.updateAdminDevice(id, payload);
       await fetchDevices(); // Refresh list
-      Get.snackbar('Sukses', 'Perangkat berhasil diperbarui');
+      // Get.snackbar('Sukses', 'Perangkat berhasil diperbarui');
       return true;
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memperbarui perangkat: $e');
+      // Get.snackbar('Error', 'Gagal memperbarui perangkat: $e');
       return false;
     }
   }
@@ -97,10 +95,10 @@ class AdminDevicesController extends GetxController {
     try {
       await apiService.deleteAdminDevice(id);
       await fetchDevices(); // Refresh list
-      Get.snackbar('Sukses', 'Perangkat berhasil dihapus');
+      // Get.snackbar('Sukses', 'Perangkat berhasil dihapus');
       return true;
     } catch (e) {
-      Get.snackbar('Error', 'Gagal menghapus perangkat: $e');
+      // Get.snackbar('Error', 'Gagal menghapus perangkat: $e');
       return false;
     }
   }

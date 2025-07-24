@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../core/constants/app_styles.dart';
 import '../controllers/admin_devices_controller.dart';
 import '../models/admin_device_model.dart';
 
@@ -29,10 +29,8 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final spec5Controller = TextEditingController();
   final devDateController = TextEditingController();
 
-  // Bribox (kategori): simpan ID dan label terpisah
   final briboxId = RxString('');
   final briboxLabel = RxString('');
-
   final condition = RxString('');
   final status = RxString('');
 
@@ -49,38 +47,54 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     controller.loadValidationRules();
 
     if (isEditing) {
-      brandController.text = widget.device!.brand;
-      brandNameController.text = widget.device!.brandName;
-      serialController.text = widget.device!.serialNumber;
-      assetCodeController.text = widget.device!.assetCode;
-      spec1Controller.text = widget.device!.spec1 ?? '';
-      spec2Controller.text = widget.device!.spec2 ?? '';
-      spec3Controller.text = widget.device!.spec3 ?? '';
-      spec4Controller.text = widget.device!.spec4 ?? '';
-      spec5Controller.text = widget.device!.spec5 ?? '';
-      condition.value = widget.device!.condition;
-      status.value =
-          widget.device!.isAssigned ? "Digunakan" : "Tidak Digunakan";
+      final device = widget.device!;
+      brandController.text = device.brand;
+      brandNameController.text = device.brandName;
+      serialController.text = device.serialNumber;
+      assetCodeController.text = device.assetCode;
+      spec1Controller.text = device.spec1 ?? '';
+      spec2Controller.text = device.spec2 ?? '';
+      spec3Controller.text = device.spec3 ?? '';
+      spec4Controller.text = device.spec4 ?? '';
+      spec5Controller.text = device.spec5 ?? '';
+      condition.value = device.condition;
+      status.value = device.isAssigned ? "Digunakan" : "Tidak Digunakan";
 
-      // Cari bribox ID berdasarkan label kategori dari device
       final allBriboxes =
           (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
               .cast<Map<String, dynamic>>();
       final match = allBriboxes.firstWhereOrNull(
-        (item) => item['label'] == widget.device!.category,
+        (item) => item['label'] == device.category,
       );
 
       if (match != null) {
         briboxId.value = match['value'] ?? '';
         briboxLabel.value = match['label'] ?? '';
       } else {
-        // fallback: tetap tampilkan kategori lama sebagai label
-        briboxLabel.value = widget.device!.category;
+        briboxId.value = device.category;
+        briboxLabel.value = device.category;
       }
 
-      if (widget.device!.assignedDate != null) {
-        devDateController.text = widget.device!.assignedDate!;
+      if (device.assignedDate != null) {
+        devDateController.text = device.assignedDate!;
       }
+
+      // Notifikasi di atas (SnackBar) selama 5 detik
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Get.snackbar(
+          "Peringatan",
+          "Harap mengisi ulang Kategori (Bribox) sebelum menyimpan.",
+          snackPosition: SnackPosition.TOP, // Muncul di atas
+          backgroundColor: Colors.orangeAccent.shade100,
+          colorText: Colors.black87,
+          borderRadius: 12,
+          margin: const EdgeInsets.all(12),
+          duration: const Duration(seconds: 5),
+          icon: const Icon(Icons.warning_amber_rounded, color: Colors.black87),
+          shouldIconPulse: false,
+          isDismissible: true,
+        );
+      });
     }
 
     _briboxSearchController.addListener(() {
@@ -120,13 +134,12 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      final formatted = DateFormat('yyyy-MM-dd').format(picked);
-      setState(() {
-        devDateController.text = formatted;
-      });
+      devDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      setState(() {});
     }
   }
 
+  // Perbaikan: hanya satu popup sukses + popup peringatan di atas
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -135,7 +148,8 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       "brand_name": brandNameController.text,
       "serial_number": serialController.text,
       "asset_code": assetCodeController.text,
-      "bribox_id": briboxId.value, // HARUS ID valid
+      "bribox_id":
+          briboxId.value.isNotEmpty ? briboxId.value : widget.device?.category,
       "condition": condition.value,
       "status": status.value,
       "spec1": spec1Controller.text,
@@ -150,11 +164,35 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     bool success;
     if (isEditing) {
       success = await controller.updateDevice(widget.device!.deviceId, payload);
+      if (success) {
+        _showSuccessPopup(isEditing: true);
+      }
     } else {
       success = await controller.createDevice(payload);
+      if (success) {
+        _showSuccessPopup(isEditing: false);
+      }
     }
+  }
 
-    if (success) Get.back();
+// Satu fungsi popup sukses
+  void _showSuccessPopup({required bool isEditing}) {
+    final msg = isEditing
+        ? "Perubahan berhasil disimpan!"
+        : "Perangkat berhasil ditambahkan!";
+    Get.snackbar(
+      "Sukses",
+      msg,
+      backgroundColor: Colors.green.shade600,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP, // selalu atas
+      margin: const EdgeInsets.all(12),
+      borderRadius: 12,
+      icon: const Icon(Icons.check_circle, color: Colors.white),
+      duration: const Duration(seconds: 3),
+      isDismissible: true,
+    );
+    Future.delayed(const Duration(seconds: 1), () => Get.back());
   }
 
   void _openBriboxSearchDialog() {
@@ -165,6 +203,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
 
     Get.dialog(
       Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           padding: const EdgeInsets.all(16),
           height: 400,
@@ -178,10 +217,14 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _briboxSearchController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Cari kategori...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 ),
               ),
               const SizedBox(height: 12),
@@ -198,7 +241,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                       return ListTile(
                         title: Text(item['label'] ?? ''),
                         onTap: () {
-                          briboxId.value = item['value'] ?? ''; // ID untuk API
+                          briboxId.value = item['value'] ?? '';
                           briboxLabel.value = item['label'] ?? '';
                           Get.back();
                         },
@@ -212,6 +255,41 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
         ),
       ),
     );
+  }
+
+  InputDecoration _fieldDecoration(String label, IconData icon,
+      {Color iconColor = Colors.blueAccent}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: iconColor),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.5)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
+      ),
+    );
+  }
+
+  Color _conditionColor(String value) {
+    switch (value.toLowerCase()) {
+      case 'rusak':
+        return Colors.redAccent;
+      case 'cadangan':
+      case 'perlu pengecekan':
+        return Colors.grey;
+      default:
+        return Colors.green;
+    }
   }
 
   @override
@@ -228,7 +306,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F6F8),
       body: Obx(() {
         final options = controller.formOptions;
         final rules = controller.validationRules;
@@ -238,7 +316,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
                   value: brandController.text.isNotEmpty
@@ -250,7 +328,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                             child: Text(item['value']),
                           ))
                       .toList(),
-                  decoration: const InputDecoration(labelText: 'Brand'),
+                  decoration: _fieldDecoration('Brand', Icons.laptop_mac),
                   onChanged: (val) => brandController.text = val ?? '',
                   validator: (val) {
                     if ((rules['rules']?['brand'] ?? []).contains('required') &&
@@ -272,46 +350,20 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                             child: Text(item['value']),
                           ))
                       .toList(),
-                  decoration:
-                      const InputDecoration(labelText: 'Brand Name / Model'),
+                  decoration: _fieldDecoration(
+                      'Brand Name / Model', Icons.devices_other),
                   onChanged: (val) => brandNameController.text = val ?? '',
-                  validator: (val) {
-                    if ((rules['rules']?['brand_name'] ?? [])
-                            .contains('required') &&
-                        (val == null || val.isEmpty)) {
-                      return rules['messages']?['brand_name.required'] ??
-                          'Brand Name wajib diisi';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: serialController,
-                  decoration: const InputDecoration(labelText: 'Serial Number'),
-                  validator: (val) {
-                    if ((rules['rules']?['serial_number'] ?? [])
-                            .contains('required') &&
-                        (val == null || val.isEmpty)) {
-                      return rules['messages']?['serial_number.required'] ??
-                          'Serial number wajib diisi';
-                    }
-                    return null;
-                  },
+                  decoration: _fieldDecoration(
+                      'Serial Number', Icons.confirmation_number),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: assetCodeController,
-                  decoration: const InputDecoration(labelText: 'Asset Code'),
-                  validator: (val) {
-                    if ((rules['rules']?['asset_code'] ?? [])
-                            .contains('required') &&
-                        (val == null || val.isEmpty)) {
-                      return rules['messages']?['asset_code.required'] ??
-                          'Asset code wajib diisi';
-                    }
-                    return null;
-                  },
+                  decoration: _fieldDecoration('Asset Code', Icons.qr_code_2),
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
@@ -320,16 +372,13 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                     child: TextFormField(
                       controller:
                           TextEditingController(text: briboxLabel.value),
-                      decoration: const InputDecoration(
-                        labelText: 'Kategori (Bribox)',
-                        suffixIcon: Icon(Icons.arrow_drop_down),
-                      ),
+                      decoration:
+                          _fieldDecoration('Kategori (Bribox)', Icons.category),
                       validator: (val) {
-                        if ((rules['rules']?['bribox_id'] ?? [])
-                                .contains('required') &&
-                            (briboxId.value.isEmpty)) {
-                          return rules['messages']?['bribox_id.required'] ??
-                              'Kategori wajib diisi';
+                        if (!isEditing &&
+                            (briboxId.value.isEmpty ||
+                                briboxLabel.value.isEmpty)) {
+                          return 'Kategori wajib diisi';
                         }
                         return null;
                       },
@@ -345,7 +394,10 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                             child: Text(item['value']),
                           ))
                       .toList(),
-                  decoration: const InputDecoration(labelText: 'Kondisi'),
+                  decoration: _fieldDecoration('Kondisi', Icons.verified,
+                      iconColor: _conditionColor(condition.value.isNotEmpty
+                          ? condition.value
+                          : 'Baik')),
                   onChanged: (val) => condition.value = val ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -357,60 +409,52 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                             child: Text(item['value']),
                           ))
                       .toList(),
-                  decoration: const InputDecoration(labelText: 'Status'),
+                  decoration: _fieldDecoration('Status', Icons.toggle_on,
+                      iconColor: Colors.orange),
                   onChanged: (val) => status.value = val ?? '',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: devDateController,
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Tanggal Pembelian/Produksi',
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
+                  decoration: _fieldDecoration(
+                      'Tanggal Keluar Barang', Icons.calendar_today),
                   onTap: _pickDate,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                    controller: spec1Controller,
-                    decoration:
-                        const InputDecoration(labelText: 'Spesifikasi 1')),
-                const SizedBox(height: 8),
-                TextFormField(
-                    controller: spec2Controller,
-                    decoration:
-                        const InputDecoration(labelText: 'Spesifikasi 2')),
-                const SizedBox(height: 8),
-                TextFormField(
-                    controller: spec3Controller,
-                    decoration:
-                        const InputDecoration(labelText: 'Spesifikasi 3')),
-                const SizedBox(height: 8),
-                TextFormField(
-                    controller: spec4Controller,
-                    decoration:
-                        const InputDecoration(labelText: 'Spesifikasi 4')),
-                const SizedBox(height: 8),
-                TextFormField(
-                    controller: spec5Controller,
-                    decoration:
-                        const InputDecoration(labelText: 'Spesifikasi 5')),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                ...[
+                  spec1Controller,
+                  spec2Controller,
+                  spec3Controller,
+                  spec4Controller,
+                  spec5Controller,
+                ].asMap().entries.map((entry) {
+                  final index = entry.key + 1;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: TextFormField(
+                      controller: entry.value,
+                      decoration: _fieldDecoration(
+                          'Spesifikasi $index', Icons.settings),
                     ),
-                    child: Text(
-                      isEditing ? 'Simpan Perubahan' : 'Tambah Perangkat',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600),
-                    ),
+                  );
+                }).toList(),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _submit,
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  label: Text(
+                    isEditing ? 'Simpan Perubahan' : 'Tambah Perangkat',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

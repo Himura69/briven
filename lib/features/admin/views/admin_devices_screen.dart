@@ -34,9 +34,12 @@ class AdminDevicesScreen extends StatelessWidget {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Tambah Perangkat',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // Teks sekarang jadi putih
+          ),
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blueAccent, // Tetap biru
       ),
       body: Padding(
         padding: EdgeInsets.all(isWeb
@@ -67,69 +70,71 @@ class AdminDevicesScreen extends StatelessWidget {
             //     ),
             //   ],
             // ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // Search & Filter Row
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) {
-                      controller.searchQuery.value = value;
-                      controller.fetchDevices();
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Cari perangkat...',
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                            color: Colors.blueAccent, width: 1.2),
-                      ),
+            // Search + Filter dengan hanya ikon filter di kanan
+            TextField(
+              onChanged: (value) {
+                controller.searchQuery.value = value;
+                controller.fetchDevices();
+              },
+              decoration: InputDecoration(
+                hintText: 'Cari perangkat...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+
+                // Hanya ikon filter di kanan
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.filter_list,
+                          color: Colors.blueAccent),
+                      onSelected: (value) {
+                        controller.selectedCondition.value = value;
+                        controller.fetchDevices();
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(value: 'Baik', child: Text('Baik')),
+                        PopupMenuItem(value: 'Rusak', child: Text('Rusak')),
+                        PopupMenuItem(
+                            value: 'Perlu Pengecekan',
+                            child: Text('Perlu Pengecekan')),
+                      ],
                     ),
-                  ),
+
+                    // Tombol clear filter
+                    Obx(() {
+                      if (controller.selectedCondition.value.isEmpty) {
+                        return const SizedBox();
+                      }
+                      return IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        color: Colors.redAccent,
+                        tooltip: 'Hapus Filter',
+                        onPressed: () {
+                          controller.selectedCondition.value = '';
+                          controller.fetchDevices();
+                        },
+                      );
+                    }),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: Obx(() => DropdownButton<String>(
-                          value: controller.selectedCondition.value.isEmpty
-                              ? null
-                              : controller.selectedCondition.value,
-                          hint: const Text('Kondisi'),
-                          icon: const Icon(Icons.filter_list,
-                              color: Colors.blueAccent),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Baik', child: Text('Baik')),
-                            DropdownMenuItem(
-                                value: 'Rusak', child: Text('Rusak')),
-                            DropdownMenuItem(
-                                value: 'Perlu Pengecekan',
-                                child: Text('Perlu Pengecekan')),
-                          ],
-                          onChanged: (value) {
-                            controller.selectedCondition.value = value ?? '';
-                            controller.fetchDevices();
-                          },
-                        )),
-                  ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
-              ],
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide:
+                      const BorderSide(color: Colors.blueAccent, width: 1.2),
+                ),
+              ),
             ),
+
             const SizedBox(height: 20),
 
             // Device List

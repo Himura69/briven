@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_devices_screen.dart';
-import 'loan_management_screen.dart';
 import 'user_management_screen.dart';
+import 'admin_assignments_screen.dart'; // Tambah screen baru
 import '../../../services/api_service.dart';
 
 class AdminRootScreen extends StatefulWidget {
@@ -18,18 +18,18 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
   int _selectedIndex = 0;
   final ApiService apiService = Get.find<ApiService>();
 
+  // Ganti LoanManagementScreen dengan AdminAssignmentsScreen
   final List<Widget> _pages = const [
     AdminDashboardScreen(),
     AdminDevicesScreen(),
-    LoanManagementScreen(),
+    AdminAssignmentsScreen(), // baru
     UserManagementScreen(),
   ];
 
-  // Judul AppBar berdasarkan tab
   final List<String> _titles = const [
     'Dashboard Admin',
     'Device Management',
-    'Device Assignments',
+    'Device Assignments', // ganti dari "Device Assignments"
     'User Management',
   ];
 
