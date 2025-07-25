@@ -3,7 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'dart:convert'; // Ditambahkan untuk jsonEncode
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.44:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.254:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -417,4 +417,34 @@ class ApiService extends GetConnect {
     }
     return response.body?['data'] ?? {};
   }
+
+  Future<Map<String, dynamic>> getAssignmentFormOptions({
+    String? field,
+    String? search,
+  }) async {
+    final query = [
+      if (field != null) 'field=$field',
+      if (search != null) 'search=$search',
+    ].join('&');
+
+    final response = await get(
+      '/admin/device-assignments/form-options${query.isNotEmpty ? '?$query' : ''}',
+    );
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal mengambil opsi form assignment');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  Future<Map<String, dynamic>> getAssignmentValidationRules() async {
+    final response =
+        await get('/admin/form-options/validation/device-assignments');
+    if (response.status.hasError) {
+      throw Exception(response.body?['message'] ??
+          'Gagal mengambil aturan validasi assignment');
+    }
+    return response.body?['data'] ?? {};
+  }
+  
 }

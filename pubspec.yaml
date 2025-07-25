@@ -38,6 +38,7 @@ dependencies:
   fl_chart: ^0.69.0
   dropdown_search: ^6.0.2
   url_launcher: ^6.1.12
+  file_picker: ^5.3.2
 
 
   # The following adds the Cupertino Icons font to your application.
