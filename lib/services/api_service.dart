@@ -499,26 +499,7 @@ class ApiService extends GetConnect {
     return response.body?['data'] ?? {};
   }
 }
-class ApiServiceWithDownload {
-  static Future<File> downloadPdfWithAuth(String url) async {
-    final storage = GetStorage();
-    final token = storage.read('token');
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer $token'},
-    );
 
-    if (response.statusCode == 200) {
-      final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/temp_assignment.pdf';
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-      return file;
-    } else {
-      throw Exception('Gagal download PDF (${response.statusCode})');
-    }
-  }
-}
 
 

@@ -1,63 +1,59 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/widgets/loading_indicator.dart';
-import '../controllers/admin_assignment_detail_controller.dart';
-import '../../../services/api_service.dart'; // untuk download PDF dengan token
+import '../../admin/controllers/admin_assignment_controller.dart';
+import '../../admin/models/admin_assignment_detail_model.dart';
 
 class AdminAssignmentDetailScreen extends StatelessWidget {
   final int assignmentId;
 
   const AdminAssignmentDetailScreen({super.key, required this.assignmentId});
 
-  Future<void> _openPdf(BuildContext context, String url) async {
-    try {
-      final file = await ApiServiceWithDownload.downloadPdfWithAuth(url);
-
-      // Tampilkan PDF di halaman baru
-      Get.to(() => PdfViewerScreen(file: file));
-    } catch (e) {
+  Future<void> _openPdf(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       Get.snackbar(
         "Error",
-        "Gagal membuka PDF: $e",
-        snackPosition: SnackPosition.BOTTOM,
+        "Tidak bisa membuka file PDF",
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AdminAssignmentDetailController());
+    final controller = Get.find<AdminAssignmentsController>();
+
+    // Ambil data detail
     controller.fetchAssignmentDetail(assignmentId);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
+        title: const Text('Detail Assignment'),
         backgroundColor: Colors.blueAccent,
-        title: const Text(
-          'Detail Assignment',
-          style: TextStyle(color: Colors.white),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      backgroundColor: const Color(0xFFF8F9FB),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (controller.isDetailLoading.value) {
           return const Center(child: LoadingIndicator());
         }
-        if (controller.errorMessage.isNotEmpty) {
+        if (controller.detailError.isNotEmpty) {
           return Center(
-            child: Text(
-              controller.errorMessage.value,
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text(controller.detailError.value,
+                style: const TextStyle(color: Colors.red)),
           );
         }
-        final detail = controller.assignmentDetail.value;
+
+        final AdminAssignmentDetailModel? detail =
+            controller.assignmentDetail.value;
+
         if (detail == null) {
-          return const Center(child: Text('Data assignment tidak ditemukan.'));
+          return const Center(
+            child: Text('Data detail tidak ditemukan'),
+          );
         }
 
         return SingleChildScrollView(
@@ -67,133 +63,72 @@ class AdminAssignmentDetailScreen extends StatelessWidget {
             children: [
               Card(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 2,
-                margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${detail.brand} (${detail.assetCode})',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('${detail.brand} ${detail.serialNumber}',
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      Text('Serial: ${detail.serialNumber}'),
-                      Text('User: ${detail.assignedTo}'),
-                      Text('Cabang: ${detail.unitName}'),
-                      Text('Tanggal Pinjam: ${detail.assignedDate}'),
-                      Text(
-                        'Status: ${detail.status ?? 'Tidak Ada'}',
-                        style: TextStyle(
-                          color:
-                              (detail.status ?? '').toLowerCase() == 'digunakan'
-                                  ? Colors.green
-                                  : Colors.orange,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('Asset Code: ${detail.assetCode}'),
+                      Text('Assigned To: ${detail.assignedTo}'),
+                      Text('Unit: ${detail.unitName}'),
+                      Text('Assigned Date: ${detail.assignedDate}'),
                       if (detail.returnedDate != null)
-                        Text('Tanggal Kembali: ${detail.returnedDate}'),
-                      if (detail.notes != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text('Catatan: ${detail.notes}'),
-                        ),
+                        Text('Returned Date: ${detail.returnedDate}'),
+                      Text('Status: ${detail.status ?? '-'}'),
+                      if (detail.notes != null) Text('Notes: ${detail.notes}'),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
 
-              // Bagian surat penugasan (PDF)
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              // Daftar surat penugasan
+              if (detail.assignmentLetters.isNotEmpty) ...[
+                const Text(
+                  'Surat Terkait:',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
                 ),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Surat Penugasan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                const SizedBox(height: 8),
+                Column(
+                  children: detail.assignmentLetters.map((letter) {
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 1,
+                      child: ListTile(
+                        leading: const Icon(Icons.picture_as_pdf,
+                            color: Colors.redAccent),
+                        title: Text(letter.letterNumber),
+                        subtitle: Text(
+                            'Jenis: ${letter.assignmentType}\nTanggal: ${letter.letterDate}'),
+                        trailing: ElevatedButton.icon(
+                          icon: const Icon(Icons.open_in_browser),
+                          label: const Text("Lihat Surat"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () => _openPdf(letter.fileUrl),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      if (detail.assignmentLetters.isEmpty)
-                        const Text(
-                          'Tidak ada surat terkait.',
-                          style: TextStyle(color: Colors.black54),
-                        )
-                      else
-                        Column(
-                          children: detail.assignmentLetters.map((letter) {
-                            return ListTile(
-                              leading: const Icon(Icons.picture_as_pdf,
-                                  color: Colors.redAccent),
-                              title: Text('${letter.assignmentType}'),
-                              subtitle: Text(
-                                  'No: ${letter.letterNumber} • ${letter.letterDate}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.open_in_new,
-                                    color: Colors.blueAccent),
-                                onPressed: () =>
-                                    _openPdf(context, letter.fileUrl),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                    ],
-                  ),
+                    );
+                  }).toList(),
                 ),
-              ),
+              ],
             ],
           ),
         );
       }),
-    );
-  }
-}
-
-// Viewer terpisah
-class PdfViewerScreen extends StatefulWidget {
-  final File file;
-  const PdfViewerScreen({super.key, required this.file});
-
-  @override
-  State<PdfViewerScreen> createState() => _PdfViewerScreenState();
-}
-
-class _PdfViewerScreenState extends State<PdfViewerScreen> {
-  late PdfControllerPinch _pdfController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pdfController =
-        PdfControllerPinch(document: PdfDocument.openFile(widget.file.path));
-  }
-
-  @override
-  void dispose() {
-    _pdfController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Lihat PDF')),
-      body: PdfViewPinch(controller: _pdfController),
     );
   }
 }
