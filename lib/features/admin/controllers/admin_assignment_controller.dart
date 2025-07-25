@@ -106,35 +106,36 @@ class AdminAssignmentsController extends GetxController {
   }
 
   /// CRUD
-  Future<Map<String, dynamic>> createAssignment(
-      Map<String, dynamic> payload) async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-      final data = await api.createAdminAssignment(payload);
-      await fetchAssignments();
-      return data;
-    } catch (e) {
-      errorMessage.value = e.toString();
-      rethrow;
-    } finally {
-      isLoading.value = false;
-    }
+  Future<Map<String, dynamic>> createAssignmentMultipart(
+    Map<String, dynamic> payload) async {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    final data = await api.createAdminAssignmentMultipart(payload);
+    await fetchAssignments(); // refresh list setelah create
+    return data;
+  } catch (e) {
+    errorMessage.value = e.toString();
+    rethrow;
+  } finally {
+    isLoading.value = false;
   }
+}
 
-  Future<Map<String, dynamic>> updateAssignment(
-      int id, Map<String, dynamic> payload) async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-      final data = await api.updateAdminAssignment(id, payload);
-      await fetchAssignments();
-      return data;
-    } catch (e) {
-      errorMessage.value = e.toString();
-      rethrow;
-    } finally {
-      isLoading.value = false;
-    }
+Future<Map<String, dynamic>> updateAssignmentMultipart(
+    int id, Map<String, dynamic> payload) async {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    final data = await api.updateAdminAssignmentMultipart(id, payload);
+    await fetchAssignments(); // refresh list setelah update
+    return data;
+  } catch (e) {
+    errorMessage.value = e.toString();
+    rethrow;
+  } finally {
+    isLoading.value = false;
   }
+}
+
 }

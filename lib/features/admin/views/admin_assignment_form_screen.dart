@@ -97,19 +97,20 @@ class _AdminAssignmentFormScreenState extends State<AdminAssignmentFormScreen> {
 
     try {
       if (isEditing) {
-        await controller.updateAssignment(
+        await controller.updateAssignmentMultipart(
             widget.assignment!.assignmentId, payload);
         Get.snackbar("Sukses", "Assignment berhasil diperbarui",
             backgroundColor: Colors.green,
             colorText: Colors.white,
             snackPosition: SnackPosition.TOP);
       } else {
-        await controller.createAssignment(payload);
+        await controller.createAssignmentMultipart(payload);
         Get.snackbar("Sukses", "Assignment berhasil ditambahkan",
             backgroundColor: Colors.green,
             colorText: Colors.white,
             snackPosition: SnackPosition.TOP);
       }
+
       Get.back();
     } catch (e) {
       Get.snackbar("Error", e.toString(),
@@ -212,8 +213,9 @@ class _AdminAssignmentFormScreenState extends State<AdminAssignmentFormScreen> {
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
                   onTap: () => _pickDate(assignedDateController),
-                  validator: (val) =>
-                      (val == null || val.isEmpty) ? 'Tanggal wajib diisi' : null,
+                  validator: (val) => (val == null || val.isEmpty)
+                      ? 'Tanggal wajib diisi'
+                      : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -237,8 +239,9 @@ class _AdminAssignmentFormScreenState extends State<AdminAssignmentFormScreen> {
                     labelText: 'Nomor Surat Penugasan',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (val) =>
-                      (val == null || val.isEmpty) ? 'Nomor surat wajib diisi' : null,
+                  validator: (val) => (val == null || val.isEmpty)
+                      ? 'Nomor surat wajib diisi'
+                      : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -252,8 +255,9 @@ class _AdminAssignmentFormScreenState extends State<AdminAssignmentFormScreen> {
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
                   onTap: () => _pickDate(letterDateController),
-                  validator: (val) =>
-                      (val == null || val.isEmpty) ? 'Tanggal surat wajib diisi' : null,
+                  validator: (val) => (val == null || val.isEmpty)
+                      ? 'Tanggal surat wajib diisi'
+                      : null,
                 ),
                 const SizedBox(height: 16),
 

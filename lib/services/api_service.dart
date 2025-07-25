@@ -1,6 +1,10 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'dart:convert'; // Ditambahkan untuk jsonEncode
+import 'package:get/get_connect/http/src/multipart/multipart_file.dart';
+import 'package:path/path.dart';
+import 'dart:io';
+ // untuk basename()
 
 class ApiService extends GetConnect {
   final String baseUrl = 'http://192.168.2.254:8000/api/v1';
@@ -446,5 +450,52 @@ class ApiService extends GetConnect {
     }
     return response.body?['data'] ?? {};
   }
-  
+
+  Future<Map<String, dynamic>> createAdminAssignmentMultipart(
+      Map<String, dynamic> payload) async {
+    final form = FormData({});
+
+    payload.forEach((key, value) {
+      if (key == 'letter_file' && value is File) {
+        form.files.add(MapEntry(
+          'letter_file',
+          MultipartFile(value, filename: basename(value.path)),
+        ));
+      } else if (value != null) {
+        form.fields.add(MapEntry(key, value.toString()));
+      }
+    });
+
+    final response = await post('/admin/device-assignments', form);
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal membuat assignment (multipart)');
+    }
+    return response.body?['data'] ?? {};
+  }
+
+  Future<Map<String, dynamic>> updateAdminAssignmentMultipart(
+      int id, Map<String, dynamic> payload) async {
+    final form = FormData({});
+
+    payload.forEach((key, value) {
+      if (key == 'letter_file' && value is File) {
+        form.files.add(MapEntry(
+          'letter_file',
+          MultipartFile(value, filename: basename(value.path)),
+        ));
+      } else if (value != null) {
+        form.fields.add(MapEntry(key, value.toString()));
+      }
+    });
+
+    final response = await put('/admin/device-assignments/$id', form);
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal memperbarui assignment (multipart)');
+    }
+    return response.body?['data'] ?? {};
+  }
 }
+
+
