@@ -5,6 +5,7 @@ import '../../../core/widgets/loading_indicator.dart';
 import '../../admin/controllers/admin_assignment_controller.dart';
 import '../models/admin_assignment_model.dart';
 import 'admin_assignment_form_screen.dart';
+import 'admin_assignment_detail_screen.dart'; // Tambah import untuk detail
 
 class AdminAssignmentsScreen extends StatelessWidget {
   const AdminAssignmentsScreen({super.key});
@@ -71,8 +72,8 @@ class AdminAssignmentsScreen extends StatelessWidget {
                     subtitle: Text(
                       'Asset: ${assignment.assetCode} • User: ${assignment.assignedTo}\n'
                       'Cabang: ${assignment.unitName}',
-                      style: const TextStyle(
-                          fontSize: 13, color: Colors.black54),
+                      style:
+                          const TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.edit, color: Colors.orange),
@@ -81,12 +82,10 @@ class AdminAssignmentsScreen extends StatelessWidget {
                             AdminAssignmentFormScreen(assignment: assignment));
                       },
                     ),
+                    // Ubah bagian ini untuk navigasi ke detail
                     onTap: () {
-                      Get.snackbar(
-                        "Info",
-                        "Klik assignment ID: ${assignment.assignmentId}",
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
+                      Get.to(() => AdminAssignmentDetailScreen(
+                          assignmentId: assignment.assignmentId));
                     },
                   ),
                 );

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:get/get.dart';
 import '../../../services/api_service.dart';
 import '../models/admin_assignment_detail_model.dart';
@@ -15,10 +17,9 @@ class AdminAssignmentDetailController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final response =
-          await apiService.getAdminAssignmentDetail(assignmentId);
-      assignmentDetail.value =
-          AdminAssignmentDetailModel.fromJson(response);
+      final response = await apiService.getAdminAssignmentDetail(assignmentId);
+      assignmentDetail.value = AdminAssignmentDetailModel.fromJson(response);
+      log(response.toString());
     } catch (e) {
       errorMessage.value = 'Gagal memuat detail assignment: $e';
     } finally {

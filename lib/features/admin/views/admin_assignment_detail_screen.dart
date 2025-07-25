@@ -1,20 +1,36 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pdfx/pdfx.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../controllers/admin_assignment_detail_controller.dart';
-import '../models/admin_assignment_detail_model.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../../services/api_service.dart'; // untuk download PDF dengan token
 
 class AdminAssignmentDetailScreen extends StatelessWidget {
   final int assignmentId;
 
   const AdminAssignmentDetailScreen({super.key, required this.assignmentId});
 
+  Future<void> _openPdf(BuildContext context, String url) async {
+    try {
+      final file = await ApiServiceWithDownload.downloadPdfWithAuth(url);
+
+      // Tampilkan PDF di halaman baru
+      Get.to(() => PdfViewerScreen(file: file));
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Gagal membuka PDF: $e",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AdminAssignmentDetailController());
-
-    // Ambil data detail saat halaman dibuka
     controller.fetchAssignmentDetail(assignmentId);
 
     return Scaffold(
@@ -41,9 +57,7 @@ class AdminAssignmentDetailScreen extends StatelessWidget {
         }
         final detail = controller.assignmentDetail.value;
         if (detail == null) {
-          return const Center(
-            child: Text('Data assignment tidak ditemukan.'),
-          );
+          return const Center(child: Text('Data assignment tidak ditemukan.'));
         }
 
         return SingleChildScrollView(
@@ -96,7 +110,7 @@ class AdminAssignmentDetailScreen extends StatelessWidget {
                 ),
               ),
 
-              // Assignment Letters Section
+              // Bagian surat penugasan (PDF)
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -132,19 +146,8 @@ class AdminAssignmentDetailScreen extends StatelessWidget {
                               trailing: IconButton(
                                 icon: const Icon(Icons.open_in_new,
                                     color: Colors.blueAccent),
-                                onPressed: () async {
-                                  final url = Uri.parse(letter.fileUrl);
-                                  if (await canLaunchUrl(url)) {
-                                    await launchUrl(url,
-                                        mode: LaunchMode.externalApplication);
-                                  } else {
-                                    Get.snackbar(
-                                      'Error',
-                                      'Gagal membuka file surat.',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                    );
-                                  }
-                                },
+                                onPressed: () =>
+                                    _openPdf(context, letter.fileUrl),
                               ),
                             );
                           }).toList(),
@@ -157,6 +160,40 @@ class AdminAssignmentDetailScreen extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+// Viewer terpisah
+class PdfViewerScreen extends StatefulWidget {
+  final File file;
+  const PdfViewerScreen({super.key, required this.file});
+
+  @override
+  State<PdfViewerScreen> createState() => _PdfViewerScreenState();
+}
+
+class _PdfViewerScreenState extends State<PdfViewerScreen> {
+  late PdfControllerPinch _pdfController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pdfController =
+        PdfControllerPinch(document: PdfDocument.openFile(widget.file.path));
+  }
+
+  @override
+  void dispose() {
+    _pdfController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Lihat PDF')),
+      body: PdfViewPinch(controller: _pdfController),
     );
   }
 }

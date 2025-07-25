@@ -4,6 +4,8 @@ import 'dart:convert'; // Ditambahkan untuk jsonEncode
 import 'package:get/get_connect/http/src/multipart/multipart_file.dart';
 import 'package:path/path.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
  // untuk basename()
 
 class ApiService extends GetConnect {
@@ -495,6 +497,27 @@ class ApiService extends GetConnect {
           response.body?['message'] ?? 'Gagal memperbarui assignment (multipart)');
     }
     return response.body?['data'] ?? {};
+  }
+}
+class ApiServiceWithDownload {
+  static Future<File> downloadPdfWithAuth(String url) async {
+    final storage = GetStorage();
+    final token = storage.read('token');
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final dir = await getTemporaryDirectory();
+      final filePath = '${dir.path}/temp_assignment.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+      return file;
+    } else {
+      throw Exception('Gagal download PDF (${response.statusCode})');
+    }
   }
 }
 
