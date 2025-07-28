@@ -6,10 +6,10 @@ import 'package:path/path.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
- // untuk basename()
+// untuk basename()
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.254:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.33:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -493,13 +493,9 @@ class ApiService extends GetConnect {
 
     final response = await put('/admin/device-assignments/$id', form);
     if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal memperbarui assignment (multipart)');
+      throw Exception(response.body?['message'] ??
+          'Gagal memperbarui assignment (multipart)');
     }
     return response.body?['data'] ?? {};
   }
 }
-
-
-
-
