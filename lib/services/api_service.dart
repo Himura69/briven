@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 // untuk basename()
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.2.33:8000/api/v1';
+  final String baseUrl = 'http://192.168.18.22:8000/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
