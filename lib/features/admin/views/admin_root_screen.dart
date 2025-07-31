@@ -104,43 +104,35 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
         child: const Icon(Icons.qr_code_scanner, size: 36, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: Colors.white,
-        child: SizedBox(
-          height: 64,
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
-            currentIndex: _selectedIndex,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: Colors.grey.shade500,
-            selectedLabelStyle: const TextStyle(
-                fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-            unselectedLabelStyle: const TextStyle(
-                fontFamily: 'Poppins', fontWeight: FontWeight.w400),
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_rounded),
-                label: 'Dashboard',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.devices_other_rounded),
-                label: 'Devices',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.assignment_ind_rounded),
-                label: 'Assignments',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.people_alt_rounded),
-                label: 'Users',
-              ),
-            ],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        currentIndex: _selectedIndex,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: Colors.grey.shade500,
+        selectedLabelStyle:
+            const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        unselectedLabelStyle:
+            const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            label: 'Dashboard',
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.devices_other_rounded),
+            label: 'Devices',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_ind_rounded),
+            label: 'Assignments',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_alt_rounded),
+            label: 'Users',
+          ),
+        ],
       ),
     );
   }
