@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 // untuk basename()
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.18.22:8000/api/v1';
+  final String baseUrl = 'http://192.168.2.215:8123/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -359,72 +359,9 @@ class ApiService extends GetConnect {
     return response.body?['data'] ?? {};
   }
 
-  // Tambahan di ApiService
-  Future<Map<String, dynamic>> getAdminAssignments({
-    String? search,
-    String? status,
-    int? branchId,
-    bool activeOnly = false,
-    int page = 1,
-    int perPage = 20,
-  }) async {
-    final queryParams = [
-      if (search != null && search.isNotEmpty) 'search=$search',
-      if (status != null && status.isNotEmpty) 'status=$status',
-      if (branchId != null) 'branchId=$branchId',
-      if (activeOnly) 'activeOnly=true',
-      'page=$page',
-      'perPage=$perPage',
-    ].join('&');
+  // ==============================================
 
-    final response = await get('/admin/device-assignments?$queryParams');
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal mengambil assignments');
-    }
-    return response.body ?? {};
-  }
-
-  Future<Map<String, dynamic>> getAdminAssignmentDetail(int id) async {
-    final response = await get('/admin/device-assignments/$id');
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal mengambil detail assignment');
-    }
-    return response.body?['data'] ?? {};
-  }
-
-  Future<Map<String, dynamic>> createAdminAssignment(
-      Map<String, dynamic> payload) async {
-    final response = await post('/admin/device-assignments', payload);
-    if (response.status.hasError) {
-      throw Exception(response.body?['message'] ?? 'Gagal membuat assignment');
-    }
-    return response.body?['data'] ?? {};
-  }
-
-  Future<Map<String, dynamic>> updateAdminAssignment(
-      int id, Map<String, dynamic> payload) async {
-    final response = await put('/admin/device-assignments/$id', payload);
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal memperbarui assignment');
-    }
-    return response.body?['data'] ?? {};
-  }
-
-  Future<Map<String, dynamic>> returnAdminAssignment(
-      int id, Map<String, dynamic> payload) async {
-    final response =
-        await post('/admin/device-assignments/$id/return', payload);
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal mengembalikan perangkat');
-    }
-    return response.body?['data'] ?? {};
-  }
-
-  Future<Map<String, dynamic>> getAssignmentFormOptions({
+  Future<Map<String, dynamic>> getDeviceAssignmentFormOptions({
     String? field,
     String? search,
   }) async {
@@ -436,66 +373,89 @@ class ApiService extends GetConnect {
     final response = await get(
       '/admin/device-assignments/form-options${query.isNotEmpty ? '?$query' : ''}',
     );
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal mengambil opsi form assignment');
-    }
-    return response.body?['data'] ?? {};
-  }
 
-  Future<Map<String, dynamic>> getAssignmentValidationRules() async {
-    final response =
-        await get('/admin/form-options/validation/device-assignments');
     if (response.status.hasError) {
       throw Exception(response.body?['message'] ??
-          'Gagal mengambil aturan validasi assignment');
+          'Gagal mengambil assignment form options');
     }
+
     return response.body?['data'] ?? {};
   }
 
-  Future<Map<String, dynamic>> createAdminAssignmentMultipart(
-      Map<String, dynamic> payload) async {
-    final form = FormData({});
+  Future<Map<String, dynamic>> createDeviceAssignment({
+    required Map<String, dynamic> fields,
+    File? pdfFile,
+  }) async {
+    final uri = Uri.parse('$baseUrl/admin/device-assignments');
+    final request = http.MultipartRequest('POST', uri);
+    final token = storage.read('token');
 
-    payload.forEach((key, value) {
-      if (key == 'letter_file' && value is File) {
-        form.files.add(MapEntry(
-          'letter_file',
-          MultipartFile(value, filename: basename(value.path)),
-        ));
-      } else if (value != null) {
-        form.fields.add(MapEntry(key, value.toString()));
-      }
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+    fields.forEach((key, value) {
+      if (value != null) request.fields[key] = value.toString();
     });
 
-    final response = await post('/admin/device-assignments', form);
+    if (pdfFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('letter_file', pdfFile.path),
+      );
+    }
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Gagal membuat assignment');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateDeviceAssignment({
+    required int assignmentId,
+    required Map<String, dynamic> fields,
+    File? pdfFile,
+  }) async {
+    final uri = Uri.parse('$baseUrl/admin/device-assignments/$assignmentId');
+    final request = http.MultipartRequest('PATCH', uri); // GANTI DI SINI ✅
+    final token = storage.read('token');
+
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+    fields.forEach((key, value) {
+      if (value != null) request.fields[key] = value.toString();
+    });
+
+    if (pdfFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('letter_file', pdfFile.path),
+      );
+    }
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Gagal mengupdate assignment');
+    }
+  }
+
+  Future<Map<String, dynamic>> getDeviceAssignmentDetail(
+      int assignmentId) async {
+    final response = await get('/admin/device-assignments/$assignmentId');
     if (response.status.hasError) {
       throw Exception(
-          response.body?['message'] ?? 'Gagal membuat assignment (multipart)');
+          response.body?['message'] ?? 'Gagal mengambil detail assignment');
     }
     return response.body?['data'] ?? {};
   }
 
-  Future<Map<String, dynamic>> updateAdminAssignmentMultipart(
-      int id, Map<String, dynamic> payload) async {
-    final form = FormData({});
-
-    payload.forEach((key, value) {
-      if (key == 'letter_file' && value is File) {
-        form.files.add(MapEntry(
-          'letter_file',
-          MultipartFile(value, filename: basename(value.path)),
-        ));
-      } else if (value != null) {
-        form.fields.add(MapEntry(key, value.toString()));
-      }
-    });
-
-    final response = await put('/admin/device-assignments/$id', form);
-    if (response.status.hasError) {
-      throw Exception(response.body?['message'] ??
-          'Gagal memperbarui assignment (multipart)');
-    }
-    return response.body?['data'] ?? {};
-  }
+  // Tambahan di ApiService
 }
