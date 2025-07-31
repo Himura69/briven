@@ -427,7 +427,9 @@ class ApiService extends GetConnect {
     request.headers['Accept'] = 'application/json';
 
     fields.forEach((key, value) {
-      if (value != null) request.fields[key] = value.toString();
+      if (value != null) {
+        request.fields[key] = value.toString();
+      }
     });
 
     if (pdfFile != null) {

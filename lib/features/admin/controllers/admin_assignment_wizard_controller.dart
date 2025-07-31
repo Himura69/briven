@@ -183,6 +183,13 @@ class AdminAssignmentWizardController extends GetxController {
           : null,
     };
 
+    print('🚀 [handleSubmit] Mode: ${isEditMode ? "EDIT" : "CREATE"}');
+    print('📤 [handleSubmit] Field Values:');
+    fields.forEach((key, value) {
+      print('  - $key: $value');
+    });
+    print('📎 [handleSubmit] File: ${letterFile.value?.path}');
+
     try {
       isLoading.value = true;
       Map<String, dynamic> response;
