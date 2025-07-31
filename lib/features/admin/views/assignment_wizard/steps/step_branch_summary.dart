@@ -23,8 +23,6 @@ class StepBranchSummary extends StatelessWidget {
           _buildSummaryItem("Pengguna", user.label),
           const SizedBox(height: 12),
           _buildSummaryItem("Unit / Branch", branch?.label ?? '-'),
-          const SizedBox(height: 12),
-          _buildSummaryItem("Supervisor", _extractSupervisorFromLabel(user.label)),
         ],
       );
     });
@@ -34,11 +32,13 @@ class StepBranchSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            )),
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -51,15 +51,5 @@ class StepBranchSummary extends StatelessWidget {
         )
       ],
     );
-  }
-
-  /// Contoh parsing supervisor dari label user
-  /// Misalnya: "12345 - John Doe (IT Dept, Jakarta Pusat, Supervisor: Budi)"
-  String _extractSupervisorFromLabel(String label) {
-    final match = RegExp(r'Supervisor\s*:\s*(.+?)\)?$').firstMatch(label);
-    if (match != null) {
-      return match.group(1) ?? '-';
-    }
-    return '-';
   }
 }

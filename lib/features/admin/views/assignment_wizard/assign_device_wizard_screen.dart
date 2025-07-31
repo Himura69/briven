@@ -14,11 +14,11 @@ class AssignDeviceWizardScreen extends StatelessWidget {
     final args = Get.arguments;
     print('🧭 [AssignDeviceWizardScreen] Get.arguments: $args');
 
-    if (args != null && args is Map && args.containsKey('assignmentId')) {
+    if (args is Map && args.containsKey('assignmentId')) {
       final int id = args['assignmentId'];
       print('🟠 [AssignDeviceWizardScreen] Mode EDIT - assignmentId: $id');
       controller.assignmentId = id;
-      controller.fetchAssignmentDetail(); // 🔑 PANGGIL API DETAIL
+      controller.fetchAssignmentDetail();
     } else {
       print('🟢 [AssignDeviceWizardScreen] Mode CREATE');
       controller.fetchFormOptions();
@@ -34,89 +34,124 @@ class AssignDeviceWizardScreen extends StatelessWidget {
         );
       }
 
+      final isEdit = controller.isEditMode;
+      final currentStep = controller.currentStep.value;
+      final totalSteps = isEdit ? 4 : 3;
+
+      final steps = <Step>[
+        Step(
+          title: Row(
+            children: const [
+              Icon(Icons.devices_outlined, size: 20),
+              SizedBox(width: 8),
+              Text("Pilih Perangkat"),
+            ],
+          ),
+          content: StepSelectDevice(),
+          isActive: currentStep >= 0,
+          state: currentStep > 0 ? StepState.complete : StepState.indexed,
+        ),
+        Step(
+          title: Row(
+            children: const [
+              Icon(Icons.person_outline, size: 20),
+              SizedBox(width: 8),
+              Text("Pilih Pengguna"),
+            ],
+          ),
+          content: StepSelectUser(),
+          isActive: currentStep >= 1,
+          state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        ),
+        if (isEdit)
+          Step(
+            title: Row(
+              children: const [
+                Icon(Icons.apartment_outlined, size: 20),
+                SizedBox(width: 8),
+                Text("Unit / Branch"),
+              ],
+            ),
+            content: StepBranchSummary(),
+            isActive: currentStep >= 2,
+            state: currentStep > 2 ? StepState.complete : StepState.indexed,
+          ),
+        Step(
+          title: Row(
+            children: const [
+              Icon(Icons.check_circle_outline, size: 20),
+              SizedBox(width: 8),
+              Text("Konfirmasi"),
+            ],
+          ),
+          content: StepConfirmation(),
+          isActive: currentStep >= (isEdit ? 3 : 2),
+          state: currentStep == (totalSteps - 1)
+              ? StepState.editing
+              : StepState.indexed,
+        ),
+      ];
+
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            controller.isEditMode ? 'Edit Device Assignment' : 'Assign Device',
+            isEdit ? 'Edit Device Assignment' : 'Assign Device',
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-          backgroundColor: controller.isEditMode ? Colors.orange : Colors.blue,
+          backgroundColor: isEdit ? Colors.orange.shade700 : Colors.blue,
+          foregroundColor: Colors.white,
         ),
         body: Stepper(
           type: StepperType.vertical,
-          currentStep: controller.currentStep.value,
+          currentStep: currentStep,
           onStepContinue: () {
-            if (controller.currentStep.value < 3) {
+            if (currentStep < totalSteps - 1) {
               controller.nextStep();
             } else {
               controller.handleSubmit();
             }
           },
           onStepCancel: () {
-            if (controller.currentStep.value > 0) {
+            if (currentStep > 0) {
               controller.previousStep();
             } else {
               Get.back();
             }
           },
-          steps: [
-            Step(
-              title: Text(controller.isEditMode
-                  ? "Perangkat yang Dipinjam"
-                  : "Pilih Perangkat"),
-              content: StepSelectDevice(),
-              isActive: controller.currentStep.value >= 0,
-              state: controller.currentStep.value > 0
-                  ? StepState.complete
-                  : StepState.indexed,
-            ),
-            Step(
-              title: Text(controller.isEditMode
-                  ? "Pengguna yang Bertanggung Jawab"
-                  : "Pilih Pengguna"),
-              content: StepSelectUser(),
-              isActive: controller.currentStep.value >= 1,
-              state: controller.currentStep.value > 1
-                  ? StepState.complete
-                  : StepState.indexed,
-            ),
-            Step(
-              title: const Text("Unit & Supervisor"),
-              content: StepBranchSummary(),
-              isActive: controller.currentStep.value >= 2,
-              state: controller.currentStep.value > 2
-                  ? StepState.complete
-                  : StepState.indexed,
-            ),
-            Step(
-              title: const Text("Konfirmasi"),
-              content: StepConfirmation(),
-              isActive: controller.currentStep.value >= 3,
-              state: controller.currentStep.value == 3
-                  ? StepState.editing
-                  : StepState.indexed,
-            ),
-          ],
+          steps: steps,
           controlsBuilder: (context, details) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (controller.currentStep.value > 0)
-                  TextButton(
-                    onPressed: details.onStepCancel,
-                    child: const Text("Kembali"),
+            return Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (currentStep > 0)
+                    TextButton.icon(
+                      onPressed: details.onStepCancel,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text("Kembali"),
+                    ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: details.onStepContinue,
+                    icon: Icon(
+                      currentStep == totalSteps - 1
+                          ? Icons.send
+                          : Icons.arrow_forward,
+                    ),
+                    label: Text(
+                      currentStep == totalSteps - 1
+                          ? (isEdit ? 'Update Assignment' : 'Assign Device')
+                          : 'Lanjut',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: currentStep == totalSteps - 1
+                          ? (isEdit ? Colors.orange : Colors.blue)
+                          : null,
+                    ),
                   ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: details.onStepContinue,
-                  child: Text(
-                    controller.currentStep.value == 3
-                        ? (controller.isEditMode
-                            ? 'Update Assignment'
-                            : 'Assign Device')
-                        : 'Lanjut',
-                  ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),

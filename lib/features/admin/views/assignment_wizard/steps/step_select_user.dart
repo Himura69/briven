@@ -11,6 +11,8 @@ class StepSelectUser extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final selected = controller.selectedUser.value;
+
       if (controller.userOptions.isEmpty) {
         return const Text("Tidak ada pengguna tersedia.");
       }
@@ -18,38 +20,89 @@ class StepSelectUser extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DropdownButtonFormField<FormOption>(
-            value: controller.selectedUser.value,
-            items: controller.userOptions
-                .map(
-                  (user) => DropdownMenuItem<FormOption>(
-                    value: user,
-                    child: Text(user.label),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              controller.selectedUser.value = value;
-
-              // Coba auto-set branch berdasarkan label user (opsional)
-              final userBranch = controller.branchOptions.firstWhereOrNull(
-                (b) => value?.label.contains(b.label) == true,
-              );
-              controller.selectedBranch.value = userBranch;
-            },
-            decoration: const InputDecoration(
-              labelText: "Pilih Pengguna",
-              border: OutlineInputBorder(),
+          GestureDetector(
+            onTap: () => _showSearchUserDialog(context),
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: "Pilih Pengguna",
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                selected?.label ?? 'Pilih Pengguna',
+                style: TextStyle(
+                  color: selected != null ? Colors.black87 : Colors.grey,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          if (controller.selectedBranch.value != null)
-            Text(
-              "Unit: ${controller.selectedBranch.value?.label}",
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
         ],
       );
     });
+  }
+
+  void _showSearchUserDialog(BuildContext context) {
+    final searchController = TextEditingController();
+    List<FormOption> filtered = List.from(controller.userOptions);
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void filter(String query) {
+              setState(() {
+                filtered = controller.userOptions
+                    .where((item) =>
+                        item.label.toLowerCase().contains(query.toLowerCase()))
+                    .toList();
+              });
+            }
+
+            return AlertDialog(
+              title: const Text("Cari Pengguna"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: searchController,
+                    onChanged: filter,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Ketik nama pengguna...',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 300,
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (_, index) {
+                        final item = filtered[index];
+                        return ListTile(
+                          title: Text(item.label),
+                          onTap: () {
+                            controller.selectedUser.value = item;
+
+                            // Auto-set Branch
+                            final userBranch =
+                                controller.branchOptions.firstWhereOrNull(
+                              (b) => item.label.contains(b.label),
+                            );
+                            controller.selectedBranch.value = userBranch;
+
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
