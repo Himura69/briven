@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 import '../../../../services/api_service.dart';
 
 class AssignmentDetailScreen extends StatefulWidget {
@@ -30,6 +34,31 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
     setState(() {
       _detailFuture = _fetchDetail();
     });
+  }
+
+  Future<void> _downloadAndOpenPdf(String url, String fileName) async {
+    try {
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
+        Get.snackbar('Izin Ditolak', 'Akses penyimpanan diperlukan.');
+        return;
+      }
+
+      final dir = await getExternalStorageDirectory();
+      final downloadDir = Directory("${dir!.path}/Download");
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+
+      final savePath = '${downloadDir.path}/$fileName';
+
+      final dio = Dio();
+      await dio.download(url, savePath);
+
+      await OpenFile.open(savePath);
+    } catch (e) {
+      Get.snackbar('Gagal', 'Gagal mengunduh file: $e');
+    }
   }
 
   @override
@@ -119,13 +148,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                         if (urlStr == null) return;
 
                         final uri = Uri.parse(urlStr);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri,
-                              mode: LaunchMode.externalApplication);
-                        } else {
-                          Get.snackbar(
-                              'Error', 'Tidak dapat membuka tautan PDF.');
-                        }
+                        final fileName = urlStr.split('/').last;
+
+                        await _downloadAndOpenPdf(uri.toString(), fileName);
                       },
                     ),
                   ),
