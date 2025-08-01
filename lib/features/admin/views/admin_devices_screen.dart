@@ -23,7 +23,7 @@ class AdminDevicesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
+        preferredSize: const Size.fromHeight(100),
         child: AdminNavBar(),
       ),
       backgroundColor: const Color(0xFFF8F9FB),

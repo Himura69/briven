@@ -79,7 +79,9 @@ class AdminDashboardScreen extends StatelessWidget {
                   crossAxisCount: crossAxisCount,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: isWeb ? 1.5 : 1.2,
+                  // TWEAK THE ASPECT RATIO TO AVOID OVERFLOW
+                  childAspectRatio:
+                      isWeb ? 1.5 : 1.1, // **PERBAIKAN ADA DI SINI**
                 ),
                 itemBuilder: (_, i) => kpiItems[i],
               );
