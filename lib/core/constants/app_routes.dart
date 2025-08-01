@@ -3,6 +3,7 @@ import '../../features/admin/views/admin_dashboard_screen.dart';
 import '../../features/admin/views/admin_devices_screen.dart';
 import '../../features/admin/views/device_form_screen.dart';
 import '../../features/admin/views/admin_root_screen.dart';
+import '../../features/admin/views/admin_assignments_screen.dart'; // ✅ Tambahan
 
 class AppRoutes {
   // Nama route
@@ -10,6 +11,7 @@ class AppRoutes {
   static const String adminDashboard = '/admin/dashboard';
   static const String adminDevices = '/admin/devices';
   static const String adminDeviceForm = '/admin/device-form';
+  static const String adminAssignments = '/admin-assignments'; // ✅ Tambahan
 
   // Semua route didaftarkan di sini
   static final routes = [
@@ -28,6 +30,10 @@ class AppRoutes {
     GetPage(
       name: adminDeviceForm,
       page: () => DeviceFormScreen(),
+    ),
+    GetPage(
+      name: adminAssignments,
+      page: () => const AdminAssignmentsScreen(),
     ),
   ];
 }

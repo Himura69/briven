@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import '../../../services/api_service.dart';
 import '../../admin/models/assignment_form_options_model.dart';
 
@@ -58,13 +59,13 @@ class AdminAssignmentWizardController extends GetxController {
       print('📡 [fetchAssignmentDetail] Data: $existingData');
 
       if (existingData?['deviceId'] == null) {
-        Get.snackbar('Peringatan', 'Data perangkat kosong, tidak bisa prefill');
+        _showErrorSnackBar('Data perangkat kosong, tidak bisa prefill');
         return;
       }
 
       await fetchFormOptions();
     } catch (e) {
-      Get.snackbar('Error', 'Gagal mengambil detail: $e');
+      _showErrorSnackBar('Gagal mengambil detail: $e');
     } finally {
       isLoading.value = false;
     }
@@ -92,7 +93,7 @@ class AdminAssignmentWizardController extends GetxController {
         prefillForm();
       }
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      _showErrorSnackBar(e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -112,7 +113,6 @@ class AdminAssignmentWizardController extends GetxController {
     print('📥 assignedTo: $assignedName');
     print('📥 unitName: $unitName');
 
-    // Prefill device
     selectedDevice.value =
         deviceOptions.firstWhereOrNull((d) => d.id == deviceId);
     if (selectedDevice.value == null) {
@@ -120,7 +120,6 @@ class AdminAssignmentWizardController extends GetxController {
     }
     print('🎯 Device terpilih: ${selectedDevice.value}');
 
-    // Prefill user
     selectedUser.value = userOptions.firstWhereOrNull(
       (u) => u.label.toLowerCase().contains(assignedName),
     );
@@ -129,7 +128,6 @@ class AdminAssignmentWizardController extends GetxController {
     }
     print('🎯 User terpilih: ${selectedUser.value}');
 
-    // Prefill branch
     selectedBranch.value = branchOptions.firstWhereOrNull(
       (b) => b.label.toLowerCase().contains(unitName),
     );
@@ -138,14 +136,12 @@ class AdminAssignmentWizardController extends GetxController {
     }
     print('🎯 Branch terpilih: ${selectedBranch.value}');
 
-    // Prefill tanggal & notes
     assignedDate.value = DateTime.tryParse(existingData?['assignedDate'] ?? '');
     notes.value = existingData?['notes'] ?? '';
 
     print('📆 assignedDate: ${assignedDate.value}');
     print('📝 notes: ${notes.value}');
 
-    // Prefill surat penugasan
     final letters = existingData?['assignmentLetters'] as List<dynamic>?;
     final surat = letters?.firstWhereOrNull(
       (e) => e['assignmentType'] == 'assignment',
@@ -195,24 +191,26 @@ class AdminAssignmentWizardController extends GetxController {
       Map<String, dynamic> response;
 
       if (isEditMode) {
+        if (assignmentId == null) {
+          _showErrorSnackBar('ID penugasan tidak tersedia.');
+          return;
+        }
+
         response = await api.updateDeviceAssignment(
           assignmentId: assignmentId!,
           fields: fields,
           pdfFile: letterFile.value,
         );
-        Get.snackbar('Success', 'Assignment updated.');
+        _showSuccessSnackBar('Penugasan berhasil diperbarui.');
       } else {
         response = await api.createDeviceAssignment(
           fields: fields,
           pdfFile: letterFile.value,
         );
-        Get.snackbar('Success', 'Assignment created.');
+        _showSuccessSnackBar('Penugasan berhasil dibuat.');
       }
-
-      Get.back(result: response);
     } catch (e) {
-      Get.snackbar('Error', e.toString(),
-          backgroundColor: Get.theme.colorScheme.error);
+      _showErrorSnackBar('Gagal menyimpan: $e');
     } finally {
       isLoading.value = false;
     }
@@ -229,5 +227,29 @@ class AdminAssignmentWizardController extends GetxController {
     letterFile.value = null;
     currentStep.value = 0;
     _isPrefilled = false;
+  }
+
+  void _showSuccessSnackBar(String message) {
+    Get.snackbar(
+      'Sukses',
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green.shade600,
+      colorText: Colors.white,
+      icon: const Icon(Icons.check_circle, color: Colors.white),
+      margin: const EdgeInsets.all(12),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.red.shade700,
+      colorText: Colors.white,
+      icon: const Icon(Icons.error, color: Colors.white),
+      margin: const EdgeInsets.all(12),
+    );
   }
 }

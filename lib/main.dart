@@ -1,3 +1,4 @@
+import 'package:briven/features/admin/views/admin_assignments_screen.dart';
 import 'package:briven/features/admin/views/admin_devices_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,6 @@ import 'features/user/views/devices_list_screen.dart';
 import 'features/user/views/profile_screen.dart';
 import 'features/user/views/device_detail_screen.dart';
 import 'features/admin/views/admin_dashboard_screen.dart';
-import 'features/admin/views/admin_devices_screen.dart';
 import 'core/constants/app_routes.dart'; // Tambahan untuk AppRoutes
 import 'services/api_service.dart';
 
@@ -39,6 +39,9 @@ class MyApp extends StatelessWidget {
         GetPage(
             name: '/admin/dashboard', page: () => const AdminDashboardScreen()),
         GetPage(name: '/admin/devices', page: () => const AdminDevicesScreen()),
+        GetPage(
+            name: '/admin-assignments',
+            page: () => const AdminAssignmentsScreen()),
 
         // Tambahkan semua route dari AppRoutes (Dashboard, Devices, Form)
         ...AppRoutes.routes,
