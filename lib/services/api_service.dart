@@ -162,7 +162,7 @@ class ApiService extends GetConnect {
       final errorMessage =
           response.body is Map && response.body['message'] != null
               ? response.body['message']
-              : 'Gagal mengambil perangkat: ${response.statusCode}';
+              : 'Cek Koneksi Internet: ${response.statusCode}';
       throw Exception(errorMessage);
     }
 

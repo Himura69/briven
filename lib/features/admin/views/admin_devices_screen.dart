@@ -14,33 +14,22 @@ class AdminDevicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AdminDevicesController controller = Get.put(AdminDevicesController());
-
-    controller.fetchDevices(); // Ambil data awal
+    controller.fetchDevices();
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 900;
     final isTablet = screenWidth >= 600 && screenWidth <= 900;
 
+    // Menentukan radius yang akan digunakan
+    final double buttonRadius = 10.0; // Contoh radius 10
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
+      appBar: const PreferredSize(
+        preferredSize: Size.fromHeight(100),
         child: AdminNavBar(),
       ),
       backgroundColor: const Color(0xFFF8F9FB),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Get.to(() => DeviceFormScreen(), transition: Transition.fadeIn);
-        },
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Tambah Perangkat',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.blueAccent,
-      ),
+      // FloatingActionButton dihapus
       body: Padding(
         padding: EdgeInsets.all(isWeb
             ? 24.0
@@ -51,78 +40,109 @@ class AdminDevicesScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-
-            // Search Field
-            TextField(
-              onChanged: (value) {
-                controller.searchQuery.value = value;
-                controller.fetchDevices();
-              },
-              decoration: InputDecoration(
-                hintText: 'Cari perangkat...',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list,
-                          color: Colors.blueAccent),
-                      onSelected: (value) {
-                        controller.selectedCondition.value = value;
-                        controller.fetchDevices();
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(value: 'Baik', child: Text('Baik')),
-                        PopupMenuItem(value: 'Rusak', child: Text('Rusak')),
-                        PopupMenuItem(
-                            value: 'Perlu Pengecekan',
-                            child: Text('Perlu Pengecekan')),
-                      ],
+            // Baris untuk Search Field dan Tombol yang sejajar
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    onChanged: (value) {
+                      controller.searchQuery.value = value;
+                      controller.fetchDevices();
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cari perangkat...',
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.filter_list,
+                                color: Colors.blueAccent),
+                            onSelected: (value) {
+                              controller.selectedCondition.value = value;
+                              controller.fetchDevices();
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem(value: 'Baik', child: Text('Baik')),
+                              PopupMenuItem(
+                                  value: 'Rusak', child: Text('Rusak')),
+                              PopupMenuItem(
+                                  value: 'Perlu Pengecekan',
+                                  child: Text('Perlu Pengecekan')),
+                            ],
+                          ),
+                          Obx(() {
+                            if (controller.selectedCondition.value.isEmpty) {
+                              return const SizedBox();
+                            }
+                            return IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              color: Colors.redAccent,
+                              tooltip: 'Hapus Filter',
+                              onPressed: () {
+                                controller.selectedCondition.value = '';
+                                controller.fetchDevices();
+                              },
+                            );
+                          }),
+                        ],
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      border: OutlineInputBorder(
+                        // Menggunakan radius yang disamakan
+                        borderRadius: BorderRadius.circular(buttonRadius),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        // Menggunakan radius yang disamakan
+                        borderRadius: BorderRadius.circular(buttonRadius),
+                        borderSide: const BorderSide(
+                            color: Colors.blueAccent, width: 1.2),
+                      ),
                     ),
-                    Obx(() {
-                      if (controller.selectedCondition.value.isEmpty) {
-                        return const SizedBox();
-                      }
-                      return IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        color: Colors.redAccent,
-                        tooltip: 'Hapus Filter',
-                        onPressed: () {
-                          controller.selectedCondition.value = '';
-                          controller.fetchDevices();
-                        },
-                      );
-                    }),
-                  ],
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Get.to(() => DeviceFormScreen(),
+                        transition: Transition.fadeIn);
+                  },
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text(
+                    'Tambah Perangkat',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      // Menggunakan radius yang disamakan
+                      borderRadius: BorderRadius.circular(buttonRadius),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide:
-                      const BorderSide(color: Colors.blueAccent, width: 1.2),
-                ),
-              ),
+              ],
             ),
-
             const SizedBox(height: 12),
 
-            // Pagination (Pindahkan ke atas list)
+            // Pagination
             Obx(() {
               if (controller.lastPage.value <= 1) return const SizedBox();
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(30),
+                  // Menggunakan radius yang disamakan
+                  borderRadius: BorderRadius.circular(buttonRadius),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -3,7 +3,7 @@
 //   flutter:
 //     sdk: flutter
 //   get: ^4.6.5
-//   intl: ^0.18.1  <-- Tambahkan ini
+//   intl: ^0.18.1
 //
 // Kemudian jalankan `flutter pub get` di terminal Anda.
 
@@ -21,6 +21,7 @@ const Color cardBackground = Color(0xFFF8F9FB);
 const Color buttonBlue = Color(0xFF2196F3);
 const Color buttonGreen = Colors.green;
 const Color buttonRed = Colors.redAccent;
+const Color buttonOrange = Colors.orange;
 
 class AdminAssignmentsScreen extends StatefulWidget {
   const AdminAssignmentsScreen({super.key});
@@ -70,21 +71,15 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
     Get.to(() => AssignmentDetailScreen(assignmentId: assignmentId));
   }
 
-  // Fungsi baru untuk memformat tanggal
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) {
       return '-';
     }
     try {
-      // Coba parsing tanggal. Jika format dari API konsisten (misalnya ISO 8601),
-      // maka DateTime.parse() sudah cukup.
-      // Jika formatnya bervariasi, Anda mungkin perlu logika parsing yang lebih canggih.
       final date = DateTime.parse(dateString);
-      // Menggunakan Intl untuk format tanggal ke bahasa Indonesia
       final formatter = DateFormat('dd MMMM yyyy', 'id');
       return formatter.format(date);
     } catch (e) {
-      // Jika parsing gagal, kembalikan string asli atau pesan error
       print("Error parsing date: $e");
       return dateString;
     }
@@ -100,7 +95,7 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
               onRefresh: loadAssignments,
               child: Column(
                 children: [
-                  _buildTotalDevicesHeader(assignments.length),
+                  _buildHeader(assignments.length),
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 13),
@@ -181,7 +176,6 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                 _buildInfoRow(
                                     icon: Icons.calendar_today,
                                     label: "Tanggal",
-                                    // Menggunakan fungsi _formatDate
                                     value: _formatDate(item['assignedDate']),
                                     color: secondaryTextGray),
                                 _buildInfoRow(
@@ -206,9 +200,10 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                       onPressed: () => goToEditAssignment(
                                           item['assignmentId']),
                                       icon: const Icon(Icons.edit,
-                                          size: 18, color: buttonGreen),
+                                          size: 18, color: buttonOrange),
                                       label: const Text("Edit",
-                                          style: TextStyle(color: buttonGreen)),
+                                          style:
+                                              TextStyle(color: buttonOrange)),
                                     ),
                                   ],
                                 ),
@@ -222,38 +217,57 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: goToAddAssignment,
-        backgroundColor: primaryBlue,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          "Tambah Assignment",
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget _buildTotalDevicesHeader(int total) {
+  /// Widget header yang menampilkan "Total Assignments" dan tombol "Tambah Assignment".
+  Widget _buildHeader(int total) {
     return Padding(
-      padding: const EdgeInsets.only(
-          top: 16.0, left: 16.0, right: 16.0, bottom: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: primaryBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Total: $total',
-              style: TextStyle(
-                  color: primaryBlue,
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {}, // Tidak ada fungsi saat ditekan
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonGreen,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                // Mengubah padding agar konsisten.
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(
+                'Total Assignments: $total',
+                style: const TextStyle(
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12),
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: goToAddAssignment,
+              icon: const Icon(Icons.add, color: Colors.white, size: 20),
+              label: const Text(
+                "Tambah Assignment",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBlue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                // Mengubah padding agar konsisten.
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
           ),
         ],
