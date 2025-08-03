@@ -31,11 +31,24 @@ class AdminDevicesScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FB),
       // FloatingActionButton dihapus
       body: Padding(
-        padding: EdgeInsets.all(isWeb
-            ? 24.0
-            : isTablet
-                ? 20.0
-                : 16.0),
+        padding: EdgeInsets.fromLTRB(
+          isWeb
+              ? 24.0
+              : isTablet
+                  ? 20.0
+                  : 16.0,
+          5, // ⬅️ padding atas = 0 (agar mepet ke navbar)
+          isWeb
+              ? 24.0
+              : isTablet
+                  ? 20.0
+                  : 16.0,
+          isWeb
+              ? 24.0
+              : isTablet
+                  ? 20.0
+                  : 16.0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

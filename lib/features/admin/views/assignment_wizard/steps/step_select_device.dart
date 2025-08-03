@@ -16,18 +16,29 @@ class StepSelectDevice extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
+          const Text('Perangkat',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          InkWell(
             onTap: () => _showSearchDialog(context),
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: "Pilih Perangkat",
-                border: OutlineInputBorder(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(
-                selected?.label ?? 'Pilih Perangkat',
-                style: TextStyle(
-                  color: selected != null ? Colors.black87 : Colors.grey,
-                ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      selected?.label ?? 'Pilih perangkat',
+                      style: TextStyle(
+                        color: selected != null ? Colors.black87 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
               ),
             ),
           ),

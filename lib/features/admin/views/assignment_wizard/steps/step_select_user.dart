@@ -1,3 +1,4 @@
+// FILE 2: StepSelectUser
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../admin/controllers/admin_assignment_wizard_controller.dart';
@@ -20,11 +21,15 @@ class StepSelectUser extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Pilih Pengguna',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
           GestureDetector(
             onTap: () => _showSearchUserDialog(context),
             child: InputDecorator(
               decoration: const InputDecoration(
-                labelText: "Pilih Pengguna",
                 border: OutlineInputBorder(),
               ),
               child: Text(
@@ -84,7 +89,6 @@ class StepSelectUser extends StatelessWidget {
                           onTap: () {
                             controller.selectedUser.value = item;
 
-                            // Auto-set Branch
                             final userBranch =
                                 controller.branchOptions.firstWhereOrNull(
                               (b) => item.label.contains(b.label),

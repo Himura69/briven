@@ -39,11 +39,10 @@ class AdminAssignmentWizardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments;
 
+    final args = Get.arguments;
     if (args is Map && args.containsKey('assignmentId')) {
       assignmentId = args['assignmentId'];
-      print('📦 [onInit] assignmentId DITERIMA: $assignmentId');
       fetchAssignmentDetail();
     } else {
       fetchFormOptions();
@@ -56,14 +55,12 @@ class AdminAssignmentWizardController extends GetxController {
     try {
       isLoading.value = true;
       existingData = await api.getDeviceAssignmentDetail(assignmentId!);
-      print('📡 [fetchAssignmentDetail] Data: $existingData');
-
       if (existingData?['deviceId'] == null) {
         _showErrorSnackBar('Data perangkat kosong, tidak bisa prefill');
         return;
       }
-
       await fetchFormOptions();
+      prefillForm();
     } catch (e) {
       _showErrorSnackBar('Gagal mengambil detail: $e');
     } finally {
@@ -75,7 +72,6 @@ class AdminAssignmentWizardController extends GetxController {
     try {
       isLoading.value = true;
       final data = await api.getDeviceAssignmentFormOptions();
-      print('🟢 [fetchFormOptions] Response: ${data.keys}');
 
       deviceOptions.value =
           (data['devices'] as List).map((e) => FormOption.fromJson(e)).toList();
@@ -84,10 +80,6 @@ class AdminAssignmentWizardController extends GetxController {
       branchOptions.value = (data['branches'] as List)
           .map((e) => FormOption.fromJson(e))
           .toList();
-
-      print('✅ Device IDs: ${deviceOptions.map((d) => d.id).toList()}');
-      print('✅ User labels: ${userOptions.map((u) => u.label).toList()}');
-      print('✅ Branch labels: ${branchOptions.map((b) => b.label).toList()}');
 
       if (isEditMode && deviceOptions.isNotEmpty) {
         prefillForm();
@@ -103,44 +95,24 @@ class AdminAssignmentWizardController extends GetxController {
     if (_isPrefilled || existingData == null) return;
     _isPrefilled = true;
 
-    print('🔧 [prefill] Mulai prefill...');
     final deviceId = int.tryParse('${existingData?['deviceId']}');
     final assignedName =
         (existingData?['assignedTo'] ?? '').toString().toLowerCase();
     final unitName = (existingData?['unitName'] ?? '').toString().toLowerCase();
 
-    print('📥 deviceId: $deviceId');
-    print('📥 assignedTo: $assignedName');
-    print('📥 unitName: $unitName');
-
     selectedDevice.value =
         deviceOptions.firstWhereOrNull((d) => d.id == deviceId);
-    if (selectedDevice.value == null) {
-      print('⚠️ Device dengan ID $deviceId tidak ditemukan di deviceOptions');
-    }
-    print('🎯 Device terpilih: ${selectedDevice.value}');
 
     selectedUser.value = userOptions.firstWhereOrNull(
       (u) => u.label.toLowerCase().contains(assignedName),
     );
-    if (selectedUser.value == null) {
-      print('⚠️ Tidak ditemukan user dengan nama $assignedName');
-    }
-    print('🎯 User terpilih: ${selectedUser.value}');
 
     selectedBranch.value = branchOptions.firstWhereOrNull(
       (b) => b.label.toLowerCase().contains(unitName),
     );
-    if (selectedBranch.value == null) {
-      print('⚠️ Tidak ditemukan branch dengan nama $unitName');
-    }
-    print('🎯 Branch terpilih: ${selectedBranch.value}');
 
     assignedDate.value = DateTime.tryParse(existingData?['assignedDate'] ?? '');
     notes.value = existingData?['notes'] ?? '';
-
-    print('📆 assignedDate: ${assignedDate.value}');
-    print('📝 notes: ${notes.value}');
 
     final letters = existingData?['assignmentLetters'] as List<dynamic>?;
     final surat = letters?.firstWhereOrNull(
@@ -151,9 +123,6 @@ class AdminAssignmentWizardController extends GetxController {
       letterNumber.value = surat['letterNumber'] ?? '';
       letterDate.value = DateTime.tryParse(surat['letterDate'] ?? '');
     }
-
-    print('📄 letterNumber: ${letterNumber.value}');
-    print('📄 letterDate: ${letterDate.value}');
   }
 
   void nextStep() {
@@ -179,13 +148,6 @@ class AdminAssignmentWizardController extends GetxController {
           : null,
     };
 
-    print('🚀 [handleSubmit] Mode: ${isEditMode ? "EDIT" : "CREATE"}');
-    print('📤 [handleSubmit] Field Values:');
-    fields.forEach((key, value) {
-      print('  - $key: $value');
-    });
-    print('📎 [handleSubmit] File: ${letterFile.value?.path}');
-
     try {
       isLoading.value = true;
       Map<String, dynamic> response;
@@ -195,7 +157,6 @@ class AdminAssignmentWizardController extends GetxController {
           _showErrorSnackBar('ID penugasan tidak tersedia.');
           return;
         }
-
         response = await api.updateDeviceAssignment(
           assignmentId: assignmentId!,
           fields: fields,
@@ -211,6 +172,43 @@ class AdminAssignmentWizardController extends GetxController {
       }
     } catch (e) {
       _showErrorSnackBar('Gagal menyimpan: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteAssignment() async {
+    if (assignmentId == null) {
+      _showErrorSnackBar('ID assignment tidak ditemukan.');
+      return;
+    }
+
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: const Text('Yakin ingin menghapus assignment ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      isLoading.value = true;
+      await api.deleteDeviceAssignment(assignmentId!);
+      _showSuccessSnackBar('Assignment berhasil dihapus.');
+      Get.back(); // Navigasi kembali setelah delete berhasil
+    } catch (e) {
+      _showErrorSnackBar('Gagal menghapus: $e');
     } finally {
       isLoading.value = false;
     }

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import '../../../services/api_service.dart';
 import 'assignment_wizard/assign_device_wizard_screen.dart';
 import '../../admin/views/assignment_wizard/assignment_detail_screen.dart';
@@ -64,18 +63,51 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
     Get.to(() => AssignmentDetailScreen(assignmentId: assignmentId));
   }
 
+  void deleteAssignment(int assignmentId) async {
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content:
+            const Text('Apakah Anda yakin ingin menghapus assignment ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: buttonRed),
+            onPressed: () => Get.back(result: true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final res = await api.delete('/admin/device-assignments/$assignmentId');
+      if (res.statusCode == 200) {
+        Get.snackbar('Sukses', 'Assignment berhasil dihapus',
+            backgroundColor: Colors.green.shade100);
+        await loadAssignments();
+      } else {
+        Get.snackbar('Gagal', 'Gagal menghapus assignment');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan: $e');
+    }
+  }
+
   String _formatDate(String? dateString) {
-    print("DEBUG: assignedDate = $dateString (${dateString.runtimeType})");
     if (dateString == null || dateString.isEmpty) {
       return '-';
     }
     try {
       final date = DateTime.parse(dateString);
-      final formatter =
-          DateFormat('dd MMMM yyyy', 'id'); // Misal: 03 Agustus 2025
+      final formatter = DateFormat('dd MMMM yyyy', 'id');
       return formatter.format(date);
     } catch (e) {
-      print("Error parsing date: $e");
       return dateString;
     }
   }
@@ -172,8 +204,7 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                 _buildInfoRow(
                                   icon: Icons.calendar_today,
                                   label: "Tanggal",
-                                  value: _formatDate(
-                                      item['assignedDate']), // harusnya ini
+                                  value: _formatDate(item['assignedDate']),
                                   color: secondaryTextGray,
                                 ),
                                 const SizedBox(height: 16),
@@ -197,6 +228,15 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                       label: const Text("Edit",
                                           style:
                                               TextStyle(color: buttonOrange)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    TextButton.icon(
+                                      onPressed: () => deleteAssignment(
+                                          item['assignmentId']),
+                                      icon: const Icon(Icons.delete,
+                                          size: 18, color: buttonRed),
+                                      label: const Text("Hapus",
+                                          style: TextStyle(color: buttonRed)),
                                     ),
                                   ],
                                 ),

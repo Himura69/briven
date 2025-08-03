@@ -466,5 +466,14 @@ class ApiService extends GetConnect {
     return response.body?['data'] ?? {};
   }
 
+  Future<void> deleteDeviceAssignment(int assignmentId) async {
+    final response = await delete('/admin/device-assignments/$assignmentId');
+
+    if (response.status.hasError) {
+      throw Exception(
+          response.body?['message'] ?? 'Gagal menghapus assignment');
+    }
+  }
+
   // Tambahan di ApiService
 }
