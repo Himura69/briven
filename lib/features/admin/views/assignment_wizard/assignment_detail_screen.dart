@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../services/api_service.dart';
 
 class AssignmentDetailScreen extends StatefulWidget {
@@ -17,6 +19,8 @@ class AssignmentDetailScreen extends StatefulWidget {
 }
 
 class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
+  static const Color primaryColor = Color(0xFF1976D2);
+
   late Future<Map<String, dynamic>> _detailFuture;
 
   @override
@@ -30,22 +34,39 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         .getDeviceAssignmentDetail(widget.assignmentId);
   }
 
-  void _refreshDetail() {
-    setState(() {
-      _detailFuture = _fetchDetail();
-    });
+  Future<bool> _checkStoragePermission() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      final sdkInt = androidInfo.version.sdkInt;
+
+      if (sdkInt >= 30) {
+        final status = await Permission.manageExternalStorage.status;
+        if (!status.isGranted) {
+          final result = await Permission.manageExternalStorage.request();
+          return result.isGranted;
+        }
+        return true;
+      } else {
+        final status = await Permission.storage.status;
+        if (!status.isGranted) {
+          final result = await Permission.storage.request();
+          return result.isGranted;
+        }
+        return true;
+      }
+    }
+    return true;
   }
 
   Future<void> _downloadAndOpenPdf(String url, String fileName) async {
     try {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
+      final hasPermission = await _checkStoragePermission();
+      if (!hasPermission) {
         Get.snackbar('Izin Ditolak', 'Akses penyimpanan diperlukan.');
         return;
       }
 
-      final dir = await getExternalStorageDirectory();
-      final downloadDir = Directory("${dir!.path}/Download");
+      final downloadDir = Directory('/storage/emulated/0/Download');
       if (!await downloadDir.exists()) {
         await downloadDir.create(recursive: true);
       }
@@ -54,7 +75,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
       final dio = Dio();
       await dio.download(url, savePath);
-
       await OpenFile.open(savePath);
     } catch (e) {
       Get.snackbar('Gagal', 'Gagal mengunduh file: $e');
@@ -74,7 +94,13 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
         if (!snapshot.hasData || snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Detail Assignment")),
+            appBar: AppBar(
+              title: Text(
+                "Detail Assignment",
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: primaryColor,
+            ),
             body: const Center(child: Text("Gagal memuat data assignment.")),
           );
         }
@@ -89,15 +115,25 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         final letters = data['assignmentLetters'] as List? ?? [];
 
         return Scaffold(
-          appBar: AppBar(title: const Text("Detail Assignment")),
+          appBar: AppBar(
+            title: Text(
+              "Detail Assignment",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: primaryColor,
+          ),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
                 Card(
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -113,34 +149,59 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   "📄 Surat Penugasan",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 if (letters.isEmpty)
-                  const Text("Tidak ada surat penugasan.",
-                      style: TextStyle(color: Colors.grey)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      "Tidak ada surat penugasan.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
                 ...letters.map(
                   (e) => Card(
-                    margin: const EdgeInsets.only(bottom: 12),
+                    margin: const EdgeInsets.only(top: 12),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       leading:
                           const Icon(Icons.picture_as_pdf, color: Colors.red),
                       title: Text(
                         (e['assignmentType'] ?? 'Surat')
                             .toString()
                             .toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                        ),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("No: ${e['letterNumber'] ?? '-'}"),
+                          const SizedBox(height: 4),
                           Text(
-                              "Tanggal: ${e['letterDate']?.toString().split('T').first ?? '-'}"),
+                            "No: ${e['letterNumber'] ?? '-'}",
+                            style: GoogleFonts.poppins(fontSize: 13),
+                          ),
+                          Text(
+                            "Tanggal: ${e['letterDate']?.toString().split('T').first ?? '-'}",
+                            style: GoogleFonts.poppins(fontSize: 13),
+                          ),
                         ],
                       ),
                       onTap: () async {
@@ -149,35 +210,8 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
                         final uri = Uri.parse(urlStr);
                         final fileName = urlStr.split('/').last;
-
                         await _downloadAndOpenPdf(uri.toString(), fileName);
                       },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final result = await Get.toNamed(
-                        '/admin/assign-device/edit',
-                        arguments: {'assignmentId': widget.assignmentId},
-                      );
-
-                      if (result != null &&
-                          result is Map &&
-                          result['updated'] == true) {
-                        _refreshDetail();
-                      }
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text("Edit Assignment"),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
                     ),
                   ),
                 ),
@@ -191,18 +225,28 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
   Widget _buildRow(String title, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 130,
             child: Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                color: Colors.black87,
+              ),
+            ),
+          ),
         ],
       ),
     );

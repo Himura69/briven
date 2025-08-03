@@ -1,20 +1,13 @@
-// Pastikan Anda sudah menambahkan dependensi `intl` di pubspec.yaml Anda
-// dependencies:
-//   flutter:
-//     sdk: flutter
-//   get: ^4.6.5
-//   intl: ^0.18.1
-//
-// Kemudian jalankan `flutter pub get` di terminal Anda.
-
+// ... import tetap sama
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart'; // Import library intl
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../../services/api_service.dart';
 import 'assignment_wizard/assign_device_wizard_screen.dart';
 import '../../admin/views/assignment_wizard/assignment_detail_screen.dart';
 
-// Definisi warna yang diambil dari gambar
+// Definisi warna
 const Color primaryBlue = Color(0xFF1E88E5);
 const Color secondaryTextGray = Color(0xFF5A5A5A);
 const Color cardBackground = Color(0xFFF8F9FB);
@@ -72,12 +65,14 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
   }
 
   String _formatDate(String? dateString) {
+    print("DEBUG: assignedDate = $dateString (${dateString.runtimeType})");
     if (dateString == null || dateString.isEmpty) {
       return '-';
     }
     try {
       final date = DateTime.parse(dateString);
-      final formatter = DateFormat('dd MMMM yyyy', 'id');
+      final formatter =
+          DateFormat('dd MMMM yyyy', 'id'); // Misal: 03 Agustus 2025
       return formatter.format(date);
     } catch (e) {
       print("Error parsing date: $e");
@@ -169,20 +164,18 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                 const Divider(height: 1, color: Colors.grey),
                                 const SizedBox(height: 12),
                                 _buildInfoRow(
-                                    icon: Icons.business,
-                                    label: "Unit",
-                                    value: item['unitName'],
-                                    color: secondaryTextGray),
+                                  icon: Icons.business,
+                                  label: "Unit",
+                                  value: item['unitName'],
+                                  color: secondaryTextGray,
+                                ),
                                 _buildInfoRow(
-                                    icon: Icons.calendar_today,
-                                    label: "Tanggal",
-                                    value: _formatDate(item['assignedDate']),
-                                    color: secondaryTextGray),
-                                _buildInfoRow(
-                                    icon: Icons.timer,
-                                    label: "Durasi",
-                                    value: '2 Hari',
-                                    color: secondaryTextGray),
+                                  icon: Icons.calendar_today,
+                                  label: "Tanggal",
+                                  value: _formatDate(
+                                      item['assignedDate']), // harusnya ini
+                                  color: secondaryTextGray,
+                                ),
                                 const SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
@@ -220,7 +213,6 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
     );
   }
 
-  /// Widget header yang menampilkan "Total Assignments" dan tombol "Tambah Assignment".
   Widget _buildHeader(int total) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -228,13 +220,12 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () {}, // Tidak ada fungsi saat ditekan
+              onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonGreen,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                // Mengubah padding agar konsisten.
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: Text(
@@ -265,7 +256,6 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                // Mengubah padding agar konsisten.
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -284,8 +274,11 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
       ),
       child: Text(
         status,
-        style:
-            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }

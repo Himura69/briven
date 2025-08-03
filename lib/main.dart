@@ -3,6 +3,7 @@ import 'package:briven/features/admin/views/admin_devices_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/date_symbol_data_local.dart'; // ← Tambahan penting
 import 'features/authentication/views/login_screen.dart';
 import 'features/authentication/controllers/login_controller.dart';
 import 'features/user/views/dashboard_screen.dart';
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  await initializeDateFormatting('id', null); // ← Tambahan untuk tanggal lokal
   print('GetStorage diinisialisasi');
   runApp(const MyApp());
 }

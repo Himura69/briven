@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.briven">
 
     <!-- ✅ Permissions -->
@@ -7,20 +6,19 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <!-- ✅ Android 11+ (API 30+) untuk akses semua file di penyimpanan -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
+    <!-- Android 11+ (akses penuh ke semua file) -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
-    <!-- ✅ Android 13+ (API 33+) jika hanya perlu akses media -->
+    <!-- Android 13+ (akses media spesifik) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
-        android:label="briven"
         android:name="${applicationName}"
+        android:label="briven"
         android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true"> <!-- Tambahan untuk Android 10 -->
+        android:requestLegacyExternalStorage="true">
 
         <activity
             android:name=".MainActivity"
@@ -47,7 +45,7 @@
             android:value="2" />
     </application>
 
-    <!-- Untuk plugin Flutter bawaan -->
+    <!-- Opsional: Dibutuhkan beberapa plugin Flutter -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
