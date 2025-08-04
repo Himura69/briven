@@ -20,8 +20,7 @@ class AdminDevicesScreen extends StatelessWidget {
     final isWeb = screenWidth > 900;
     final isTablet = screenWidth >= 600 && screenWidth <= 900;
 
-    // Menentukan radius yang akan digunakan
-    final double buttonRadius = 10.0; // Contoh radius 10
+    final double buttonRadius = 10.0;
 
     return Scaffold(
       appBar: const PreferredSize(
@@ -29,7 +28,6 @@ class AdminDevicesScreen extends StatelessWidget {
         child: AdminNavBar(),
       ),
       backgroundColor: const Color(0xFFF8F9FB),
-      // FloatingActionButton dihapus
       body: Padding(
         padding: EdgeInsets.fromLTRB(
           isWeb
@@ -37,7 +35,7 @@ class AdminDevicesScreen extends StatelessWidget {
               : isTablet
                   ? 20.0
                   : 16.0,
-          5, // ⬅️ padding atas = 0 (agar mepet ke navbar)
+          8,
           isWeb
               ? 24.0
               : isTablet
@@ -52,8 +50,38 @@ class AdminDevicesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-            // Baris untuk Search Field dan Tombol yang sejajar
+            // TOTAL PERANGKAT - dalam kotak dan center
+            Obx(() {
+              return Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.devices,
+                        color: Colors.blueAccent, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Total Perangkat: ${controller.total.value}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            // SEARCH & TAMBAH PERANGKAT
             Row(
               children: [
                 Expanded(
@@ -104,12 +132,10 @@ class AdminDevicesScreen extends StatelessWidget {
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                       border: OutlineInputBorder(
-                        // Menggunakan radius yang disamakan
                         borderRadius: BorderRadius.circular(buttonRadius),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        // Menggunakan radius yang disamakan
                         borderRadius: BorderRadius.circular(buttonRadius),
                         borderSide: const BorderSide(
                             color: Colors.blueAccent, width: 1.2),
@@ -127,14 +153,11 @@ class AdminDevicesScreen extends StatelessWidget {
                   label: const Text(
                     'Tambah Perangkat',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                        fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
-                      // Menggunakan radius yang disamakan
                       borderRadius: BorderRadius.circular(buttonRadius),
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -143,51 +166,10 @@ class AdminDevicesScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
 
-            // Pagination
-            Obx(() {
-              if (controller.lastPage.value <= 1) return const SizedBox();
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
-                  // Menggunakan radius yang disamakan
-                  borderRadius: BorderRadius.circular(buttonRadius),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: controller.currentPage.value > 1
-                          ? () => controller.fetchDevices(
-                              page: controller.currentPage.value - 1)
-                          : null,
-                      icon: const Icon(Icons.chevron_left,
-                          color: Colors.blueAccent),
-                    ),
-                    Text(
-                      '${controller.currentPage.value} / ${controller.lastPage.value}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    IconButton(
-                      onPressed: controller.currentPage.value <
-                              controller.lastPage.value
-                          ? () => controller.fetchDevices(
-                              page: controller.currentPage.value + 1)
-                          : null,
-                      icon: const Icon(Icons.chevron_right,
-                          color: Colors.blueAccent),
-                    ),
-                  ],
-                ),
-              );
-            }),
+            const SizedBox(height: 10),
 
-            // List perangkat
+            // LIST PERANGKAT
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -195,16 +177,19 @@ class AdminDevicesScreen extends StatelessWidget {
                 }
                 if (controller.errorMessage.isNotEmpty) {
                   return Center(
-                    child: Text(controller.errorMessage.value,
-                        style: const TextStyle(color: Colors.red)),
+                    child: Text(
+                      controller.errorMessage.value,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   );
                 }
                 if (controller.devices.isEmpty) {
                   return const Center(
-                      child: Text(
-                    'Tidak ada perangkat.',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                  ));
+                    child: Text(
+                      'Tidak ada perangkat.',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                  );
                 }
                 return ListView.builder(
                   physics: const BouncingScrollPhysics(),
@@ -236,6 +221,46 @@ class AdminDevicesScreen extends StatelessWidget {
                 );
               }),
             ),
+
+            // PAGINATION tanpa background button
+            Obx(() {
+              if (controller.lastPage.value <= 1) return const SizedBox();
+              return Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: controller.currentPage.value > 1
+                            ? () => controller.fetchDevices(
+                                page: controller.currentPage.value - 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_left,
+                            color: Colors.blueAccent),
+                      ),
+                      Text(
+                        '${controller.currentPage.value} / ${controller.lastPage.value}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: controller.currentPage.value <
+                                controller.lastPage.value
+                            ? () => controller.fetchDevices(
+                                page: controller.currentPage.value + 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_right,
+                            color: Colors.blueAccent),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),

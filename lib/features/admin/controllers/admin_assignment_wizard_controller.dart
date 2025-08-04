@@ -177,42 +177,6 @@ class AdminAssignmentWizardController extends GetxController {
     }
   }
 
-  Future<void> deleteAssignment() async {
-    if (assignmentId == null) {
-      _showErrorSnackBar('ID assignment tidak ditemukan.');
-      return;
-    }
-
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Konfirmasi'),
-        content: const Text('Yakin ingin menghapus assignment ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Get.back(result: true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    try {
-      isLoading.value = true;
-      await api.deleteDeviceAssignment(assignmentId!);
-      _showSuccessSnackBar('Assignment berhasil dihapus.');
-      Get.back(); // Navigasi kembali setelah delete berhasil
-    } catch (e) {
-      _showErrorSnackBar('Gagal menghapus: $e');
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
   void resetForm() {
     selectedDevice.value = null;

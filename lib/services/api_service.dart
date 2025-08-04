@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 // untuk basename()
 
 class ApiService extends GetConnect {
-  final String baseUrl = 'http://192.168.0.252:8123/api/v1';
+  final String baseUrl = 'http://192.168.2.209:8123/api/v1';
   final GetStorage storage = GetStorage();
 
   @override
@@ -289,10 +289,31 @@ class ApiService extends GetConnect {
     ].join('&');
 
     final response = await get('/admin/devices?$query');
+
     if (response.status.hasError) {
-      throw Exception(response.body?['message'] ?? 'Gagal mengambil perangkat');
+      // Jika response body masih berupa String, decode dulu
+      try {
+        final body =
+            jsonDecode(response.bodyString ?? '') as Map<String, dynamic>;
+        throw Exception(body['message'] ?? 'Gagal mengambil perangkat');
+      } catch (_) {
+        throw Exception('Gagal mengambil perangkat');
+      }
     }
-    return response.body ?? {};
+
+    try {
+      // Pastikan di-decode ke Map
+      final body = response.body;
+      if (body is Map<String, dynamic>) {
+        return body;
+      } else if (body is String) {
+        return jsonDecode(body) as Map<String, dynamic>;
+      } else {
+        throw Exception("Respons tidak dikenali");
+      }
+    } catch (e) {
+      throw Exception("Gagal mengurai data perangkat: $e");
+    }
   }
 
   Future<Map<String, dynamic>> getAdminDeviceDetail(int deviceId) async {

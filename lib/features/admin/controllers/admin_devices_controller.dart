@@ -31,6 +31,7 @@ class AdminDevicesController extends GetxController {
     try {
       isLoading.value = true;
       errorMessage.value = '';
+
       final response = await apiService.getAdminDevices(
         search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
         condition:
@@ -39,15 +40,31 @@ class AdminDevicesController extends GetxController {
         perPage: 20,
       );
 
+      // Validasi data
+      if (response['data'] is! List) {
+        throw Exception("Format data tidak valid dari server: data bukan List");
+      }
+
       final data = response['data'] as List<dynamic>;
       devices.value = data.map((e) => AdminDeviceModel.fromJson(e)).toList();
 
-      final meta = response['meta'] ?? {};
-      currentPage.value = meta['currentPage'] ?? 1;
-      lastPage.value = meta['lastPage'] ?? 1;
-      total.value = meta['total'] ?? devices.length;
+      final meta = response['meta'];
+      if (meta is Map<String, dynamic>) {
+        currentPage.value = meta['currentPage'] ?? 1;
+        lastPage.value = meta['lastPage'] ?? 1;
+        total.value = meta['total'] ?? devices.length;
+      } else {
+        // Jika meta tidak tersedia atau bukan map, isi default
+        currentPage.value = 1;
+        lastPage.value = 1;
+        total.value = devices.length;
+      }
     } catch (e) {
       errorMessage.value = 'Gagal memuat perangkat: $e';
+      devices.clear();
+      total.value = 0;
+      currentPage.value = 1;
+      lastPage.value = 1;
     } finally {
       isLoading.value = false;
     }

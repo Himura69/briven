@@ -63,42 +63,6 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
     Get.to(() => AssignmentDetailScreen(assignmentId: assignmentId));
   }
 
-  void deleteAssignment(int assignmentId) async {
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content:
-            const Text('Apakah Anda yakin ingin menghapus assignment ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: buttonRed),
-            onPressed: () => Get.back(result: true),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    try {
-      final res = await api.delete('/admin/device-assignments/$assignmentId');
-      if (res.statusCode == 200) {
-        Get.snackbar('Sukses', 'Assignment berhasil dihapus',
-            backgroundColor: Colors.green.shade100);
-        await loadAssignments();
-      } else {
-        Get.snackbar('Gagal', 'Gagal menghapus assignment');
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Terjadi kesalahan: $e');
-    }
-  }
-
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) {
       return '-';
@@ -228,15 +192,6 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                       label: const Text("Edit",
                                           style:
                                               TextStyle(color: buttonOrange)),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    TextButton.icon(
-                                      onPressed: () => deleteAssignment(
-                                          item['assignmentId']),
-                                      icon: const Icon(Icons.delete,
-                                          size: 18, color: buttonRed),
-                                      label: const Text("Hapus",
-                                          style: TextStyle(color: buttonRed)),
                                     ),
                                   ],
                                 ),
