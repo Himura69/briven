@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../services/api_service.dart';
 import 'assignment_wizard/assign_device_wizard_screen.dart';
 import '../../admin/views/assignment_wizard/assignment_detail_screen.dart';
+import 'return_device_from_screen.dart'; // ✅ Import form pengembalian
 
 // Definisi warna
 const Color primaryBlue = Color(0xFF1E88E5);
@@ -61,6 +62,13 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
 
   void goToDetail(int assignmentId) {
     Get.to(() => AssignmentDetailScreen(assignmentId: assignmentId));
+  }
+
+  void goToReturnDevice(int assignmentId) async {
+    final detail = await api.getDeviceAssignmentDetail(assignmentId);
+    final result =
+        await Get.to(() => ReturnDeviceFormScreen(assignmentId: assignmentId));
+    if (result == true) loadAssignments();
   }
 
   String _formatDate(String? dateString) {
@@ -192,6 +200,15 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
                                       label: const Text("Edit",
                                           style:
                                               TextStyle(color: buttonOrange)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    TextButton.icon(
+                                      onPressed: () => goToReturnDevice(
+                                          item['assignmentId']),
+                                      icon: const Icon(Icons.assignment_return,
+                                          size: 18, color: buttonRed),
+                                      label: const Text("Return",
+                                          style: TextStyle(color: buttonRed)),
                                     ),
                                   ],
                                 ),

@@ -487,12 +487,37 @@ class ApiService extends GetConnect {
     return response.body?['data'] ?? {};
   }
 
-  Future<void> deleteDeviceAssignment(int assignmentId) async {
-    final response = await delete('/admin/device-assignments/$assignmentId');
+  Future<Map<String, dynamic>> returnDeviceAssignment({
+    required int assignmentId,
+    required Map<String, dynamic> fields,
+    required File letterFile,
+  }) async {
+    final uri =
+        Uri.parse('$baseUrl/admin/device-assignments/$assignmentId/return');
+    final request = http.MultipartRequest('POST', uri);
+    final token = storage.read('token');
 
-    if (response.status.hasError) {
-      throw Exception(
-          response.body?['message'] ?? 'Gagal menghapus assignment');
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+    // Tambahkan semua field (hanya jika tidak null)
+    fields.forEach((key, value) {
+      if (value != null) request.fields[key] = value.toString();
+    });
+
+    // Tambahkan file wajib
+    request.files.add(
+      await http.MultipartFile.fromPath('letter_file', letterFile.path),
+    );
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['message'] ?? 'Gagal return device');
     }
   }
 

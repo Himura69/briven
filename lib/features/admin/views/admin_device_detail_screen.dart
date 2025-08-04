@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_styles.dart';
 import '../controllers/admin_devices_controller.dart';
 import '../models/admin_device_model.dart';
@@ -18,6 +19,15 @@ class AdminDeviceDetailScreen extends StatelessWidget {
         return Colors.grey;
       default:
         return Colors.green;
+    }
+  }
+
+  String formatTanggal(String isoDateString) {
+    try {
+      final date = DateTime.parse(isoDateString).toLocal();
+      return DateFormat("dd MMMM yyyy", "id_ID").format(date);
+    } catch (e) {
+      return isoDateString;
     }
   }
 
@@ -46,15 +56,20 @@ class AdminDeviceDetailScreen extends StatelessWidget {
         backgroundColor: Colors.blueAccent,
         title: const Text(
           "Detail Perangkat",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon:
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        elevation: 0,
+        elevation: 1,
       ),
-      backgroundColor: const Color(0xFFF4F6F8),
+      backgroundColor: const Color(0xFFF1F6FA),
       body: Obx(() {
         if (isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -74,11 +89,10 @@ class AdminDeviceDetailScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Info utama perangkat
               Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
-                elevation: 3,
+                elevation: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -100,13 +114,10 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-
-                      // Detail utama
                       _infoRow(Icons.qr_code, 'Asset Code', device.assetCode),
                       _infoRow(Icons.confirmation_number, 'Serial',
                           device.serialNumber),
-
-                      // Kondisi (warna dinamis)
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Icon(Icons.circle,
@@ -123,8 +134,6 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-
-                      // Kategori (chip style)
                       if (device.category.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -149,15 +158,12 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-
                       if (device.devDate != null) ...[
                         const SizedBox(height: 12),
                         _infoRow(Icons.calendar_today, 'Tanggal Peminjaman',
-                            device.devDate!),
+                            formatTanggal(device.devDate!)),
                       ],
-
                       const SizedBox(height: 12),
-                      // Spesifikasi
                       ...[
                         if (device.spec1 != null)
                           _infoRow(
@@ -179,8 +185,6 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Status Peminjaman
               if (device.isAssigned && device.assignedTo != null)
                 Card(
                   shape: RoundedRectangleBorder(
@@ -215,7 +219,9 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                                 style: const TextStyle(color: Colors.black87),
                               ),
                               if (device.assignedDate != null)
-                                Text('Tanggal Pinjam: ${device.assignedDate}'),
+                                Text(
+                                  'Tanggal Pinjam: ${formatTanggal(device.assignedDate!)}',
+                                ),
                             ],
                           ),
                         ),
@@ -223,8 +229,6 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
-              // Riwayat Peminjaman
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -245,15 +249,13 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                             'Riwayat Peminjaman',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-
-                      // Jika tidak ada riwayat
                       if (device.assignmentHistory.isEmpty)
                         const Center(
                           child: Text(
@@ -287,9 +289,15 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                                 ],
                               ),
                               child: ListTile(
-                                leading: Icon(
-                                  Icons.person,
-                                  color: isActive ? Colors.green : Colors.grey,
+                                leading: CircleAvatar(
+                                  backgroundColor: isActive
+                                      ? Colors.green.shade100
+                                      : Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.person,
+                                    color:
+                                        isActive ? Colors.green : Colors.grey,
+                                  ),
                                 ),
                                 title: Text(
                                   '${item.userName} (${item.userPn})',
@@ -300,7 +308,7 @@ class AdminDeviceDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  'Pinjam: ${item.assignedDate}\nKembali: ${item.returnedDate ?? '-'}',
+                                  'Pinjam: ${formatTanggal(item.assignedDate)}\nKembali: ${item.returnedDate != null ? formatTanggal(item.returnedDate!) : '-'}',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.black54,
