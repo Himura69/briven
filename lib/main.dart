@@ -13,6 +13,7 @@ import 'features/user/views/device_detail_screen.dart';
 import 'features/admin/views/admin_dashboard_screen.dart';
 import 'core/constants/app_routes.dart'; // Tambahan untuk AppRoutes
 import 'services/api_service.dart';
+import 'features/authentication/views/splash_screen.dart'; // ✅ Tambahkan import ini
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -29,22 +30,19 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF5F5F5),
         fontFamily: 'Poppins',
       ),
-      initialRoute: '/login',
+      initialRoute: '/splash', // ✅ Ganti ke splash
       getPages: [
-        // Route lama tetap ada
+        GetPage(name: '/splash', page: () => const SplashScreen()), // ✅ Tambah route splash
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/dashboard', page: () => const DashboardScreen()),
         GetPage(name: '/devices', page: () => const DevicesListScreen()),
         GetPage(name: '/profile', page: () => const ProfileScreen()),
         GetPage(name: '/device_detail', page: () => const DeviceDetailScreen()),
-        GetPage(
-            name: '/admin/dashboard', page: () => const AdminDashboardScreen()),
+        GetPage(name: '/admin/dashboard', page: () => const AdminDashboardScreen()),
         GetPage(name: '/admin/devices', page: () => const AdminDevicesScreen()),
-        GetPage(
-            name: '/admin-assignments',
-            page: () => const AdminAssignmentsScreen()),
+        GetPage(name: '/admin-assignments', page: () => const AdminAssignmentsScreen()),
 
-        // Tambahkan semua route dari AppRoutes (Dashboard, Devices, Form)
+        // Tambahkan semua route dari AppRoutes
         ...AppRoutes.routes,
       ],
     );

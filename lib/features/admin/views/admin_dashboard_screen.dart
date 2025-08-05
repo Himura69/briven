@@ -7,8 +7,49 @@ import '../../../../../core/widgets/device_condition_chart.dart';
 import '../../../../../core/widgets/branch_distribution_chart.dart';
 import '../../admin/controllers/admin_dashboard_controller.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState extends State<AdminDashboardScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeIn;
+  late Animation<Offset> _slideUp;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+
+    _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _slideUp = Tween<Offset>(
+      begin: const Offset(0, 0.05),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _buildAnimatedSection(Widget child, {int delay = 0}) {
+    return FadeTransition(
+      opacity: _fadeIn,
+      child: SlideTransition(
+        position: _slideUp,
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +75,7 @@ class AdminDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // KPI GRID
+            // KPI SECTION
             Obx(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
@@ -71,25 +112,25 @@ class AdminDashboardScreen extends StatelessWidget {
                     color: Colors.redAccent),
               ];
 
-              return GridView.builder(
-                itemCount: kpiItems.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  // TWEAK THE ASPECT RATIO TO AVOID OVERFLOW
-                  childAspectRatio:
-                      isWeb ? 1.5 : 1.1, // **PERBAIKAN ADA DI SINI**
+              return _buildAnimatedSection(
+                GridView.builder(
+                  itemCount: kpiItems.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: isWeb ? 1.5 : 1.1,
+                  ),
+                  itemBuilder: (_, i) => kpiItems[i],
                 ),
-                itemBuilder: (_, i) => kpiItems[i],
               );
             }),
 
             const SizedBox(height: 32),
 
-            // CHARTS SECTION (Pie + Bar)
+            // CHART SECTION
             Obx(() {
               final chart = controller.chartData.value;
               if (chart == null) {
@@ -97,114 +138,110 @@ class AdminDashboardScreen extends StatelessWidget {
                     child: Text('Tidak ada data untuk ditampilkan.'));
               }
 
-              if (isWeb || isTablet) {
-                // Jika layar lebar, dua chart disusun horizontal
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildChartCard(
-                        title: 'Kondisi Perangkat',
-                        icon: Icons.pie_chart_rounded,
-                        child: chart.deviceConditions.isEmpty
-                            ? const Text('Tidak ada data kondisi perangkat.',
-                                style: TextStyle(color: Colors.black54))
-                            : DeviceConditionChart(
-                                data: chart.deviceConditions,
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: _buildChartCard(
-                        title: 'Distribusi Perangkat per Cabang',
-                        icon: Icons.bar_chart_rounded,
-                        child: chart.devicesPerBranch.isEmpty
-                            ? const Text('Tidak ada data distribusi cabang.',
-                                style: TextStyle(color: Colors.black54))
-                            : BranchDistributionChart(
-                                data: chart.devicesPerBranch,
-                              ),
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                // Jika layar kecil, ditumpuk vertikal
-                return Column(
-                  children: [
-                    _buildChartCard(
-                      title: 'Kondisi Perangkat',
-                      icon: Icons.pie_chart_rounded,
-                      child: chart.deviceConditions.isEmpty
-                          ? const Text('Tidak ada data kondisi perangkat.',
-                              style: TextStyle(color: Colors.black54))
-                          : DeviceConditionChart(
-                              data: chart.deviceConditions,
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildChartCard(
-                      title: 'Distribusi Perangkat per Cabang',
-                      icon: Icons.bar_chart_rounded,
-                      child: chart.devicesPerBranch.isEmpty
-                          ? const Text('Tidak ada data distribusi cabang.',
-                              style: TextStyle(color: Colors.black54))
-                          : BranchDistributionChart(
-                              data: chart.devicesPerBranch,
-                            ),
-                    ),
-                  ],
-                );
-              }
+              Widget chartRow = isWeb || isTablet
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _buildChartCard(
+                            title: 'Kondisi Perangkat',
+                            icon: Icons.pie_chart_rounded,
+                            child: chart.deviceConditions.isEmpty
+                                ? const Text(
+                                    'Tidak ada data kondisi perangkat.',
+                                    style: TextStyle(color: Colors.black54))
+                                : DeviceConditionChart(
+                                    data: chart.deviceConditions),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: _buildChartCard(
+                            title: 'Distribusi Perangkat per Cabang',
+                            icon: Icons.bar_chart_rounded,
+                            child: chart.devicesPerBranch.isEmpty
+                                ? const Text(
+                                    'Tidak ada data distribusi cabang.',
+                                    style: TextStyle(color: Colors.black54))
+                                : BranchDistributionChart(
+                                    data: chart.devicesPerBranch),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _buildChartCard(
+                          title: 'Kondisi Perangkat',
+                          icon: Icons.pie_chart_rounded,
+                          child: chart.deviceConditions.isEmpty
+                              ? const Text('Tidak ada data kondisi perangkat.',
+                                  style: TextStyle(color: Colors.black54))
+                              : DeviceConditionChart(
+                                  data: chart.deviceConditions),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildChartCard(
+                          title: 'Distribusi Perangkat per Cabang',
+                          icon: Icons.bar_chart_rounded,
+                          child: chart.devicesPerBranch.isEmpty
+                              ? const Text('Tidak ada data distribusi cabang.',
+                                  style: TextStyle(color: Colors.black54))
+                              : BranchDistributionChart(
+                                  data: chart.devicesPerBranch),
+                        ),
+                      ],
+                    );
+
+              return _buildAnimatedSection(chartRow);
             }),
 
             const SizedBox(height: 32),
 
-            // ACTIVITY LOG
+            // ACTIVITY LOG SECTION
             Obx(() {
               final kpi = controller.kpiData.value;
               if (kpi == null || kpi.activityLog.isEmpty) {
                 return const Text('Tidak ada aktivitas terbaru.',
                     style: TextStyle(color: Colors.black54));
               }
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.history_rounded,
-                              size: 22, color: Colors.blueAccent),
-                          SizedBox(width: 6),
-                          Text('Activity Log',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 18,
-                                  color: Colors.black87)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ...kpi.activityLog.map((log) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: ActivityLogCard(
-                            title: log.title,
-                            description: log.description,
-                            user: log.user,
-                            date: log.date,
-                            time: log.time,
-                            category: log.category,
-                            type: log.type,
-                          ),
-                        );
-                      }).toList(),
-                    ],
+              return _buildAnimatedSection(
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.history_rounded,
+                                size: 22, color: Colors.blueAccent),
+                            SizedBox(width: 6),
+                            Text('Activity Log',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    color: Colors.black87)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...kpi.activityLog.map((log) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: ActivityLogCard(
+                                title: log.title,
+                                description: log.description,
+                                user: log.user,
+                                date: log.date,
+                                time: log.time,
+                                category: log.category,
+                                type: log.type,
+                              ),
+                            )),
+                      ],
+                    ),
                   ),
                 ),
               );
