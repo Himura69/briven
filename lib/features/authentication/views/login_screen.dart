@@ -34,14 +34,14 @@ class LoginScreen extends StatelessWidget {
                   // Logo
                   Image.asset(
                     'assets/images/logo.png',
-                    height: isWeb ? 120 : 80,
+                    height: isWeb ? 120 : 150,
                   ),
                   const SizedBox(height: 32),
                   // Judul
                   Text(
                     'Login to Your Account',
                     style: AppStyles.title.copyWith(
-                      fontSize: isWeb ? 28 : 24,
+                      fontSize: isWeb ? 28 : 20,
                     ),
                   ),
                   const SizedBox(height: 24),
