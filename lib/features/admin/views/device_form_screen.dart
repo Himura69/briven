@@ -95,21 +95,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       }
 
       // Show warning to reselect bribox category
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Get.snackbar(
-          "Peringatan",
-          "Harap mengisi ulang Kategori (Bribox) sebelum menyimpan.",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orangeAccent.shade100,
-          colorText: Colors.black87,
-          borderRadius: 12,
-          margin: const EdgeInsets.all(12),
-          duration: const Duration(seconds: 5),
-          icon: const Icon(Icons.warning_amber_rounded, color: Colors.black87),
-          shouldIconPulse: false,
-          isDismissible: true,
-        );
-      });
     } catch (e) {
       errorMessage.value = 'Gagal memuat detail perangkat: $e';
       Get.snackbar(
