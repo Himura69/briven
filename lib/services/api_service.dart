@@ -521,5 +521,10 @@ class ApiService extends GetConnect {
     }
   }
 
+  Future<Response> scanQrCode(String qrCode) async {
+    final endpoint = '/admin/scan/$qrCode';
+    return await get(endpoint);
+  }
+
   // Tambahan di ApiService
 }

@@ -40,10 +40,28 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final RxList<Map<String, dynamic>> _filteredBriboxes =
       <Map<String, dynamic>>[].obs;
 
+  // Tambahan controller dan list untuk search dropdown
+  final TextEditingController _brandSearchController = TextEditingController();
+  final RxList<Map<String, dynamic>> _filteredBrands =
+      <Map<String, dynamic>>[].obs;
+
+  final TextEditingController _brandNameSearchController =
+      TextEditingController();
+  final RxList<Map<String, dynamic>> _filteredBrandNames =
+      <Map<String, dynamic>>[].obs;
+
   @override
   void initState() {
     super.initState();
-    controller.loadFormOptions();
+    controller.loadFormOptions().then((_) {
+      // Prefill filtered lists
+      _filteredBrands.value =
+          (controller.formOptions['brands'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      _filteredBrandNames.value =
+          (controller.formOptions['brandNames'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+    });
     controller.loadValidationRules();
 
     if (isEditing) {
@@ -108,6 +126,30 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
               item['value'].toString().toLowerCase().contains(query))
           .toList();
     });
+
+    _brandSearchController.addListener(() {
+      final allBrands =
+          (controller.formOptions['brands'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      final query = _brandSearchController.text.toLowerCase();
+      _filteredBrands.value = allBrands
+          .where((item) =>
+              item['value'].toString().toLowerCase().contains(query) ||
+              item['label']?.toString().toLowerCase().contains(query) == true)
+          .toList();
+    });
+
+    _brandNameSearchController.addListener(() {
+      final allBrandNames =
+          (controller.formOptions['brandNames'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      final query = _brandNameSearchController.text.toLowerCase();
+      _filteredBrandNames.value = allBrandNames
+          .where((item) =>
+              item['value'].toString().toLowerCase().contains(query) ||
+              item['label']?.toString().toLowerCase().contains(query) == true)
+          .toList();
+    });
   }
 
   @override
@@ -123,6 +165,8 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     spec5Controller.dispose();
     devDateController.dispose();
     _briboxSearchController.dispose();
+    _brandSearchController.dispose();
+    _brandNameSearchController.dispose();
     super.dispose();
   }
 
@@ -257,6 +301,65 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     );
   }
 
+  // Widget custom untuk dropdown search
+  Future<void> _openSearchDropdownDialog({
+    required String title,
+    required TextEditingController searchController,
+    required RxList<Map<String, dynamic>> filteredList,
+    required Function(Map<String, dynamic>) onSelect,
+  }) async {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          height: 400,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Cari $title...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Obx(() {
+                  if (filteredList.isEmpty) {
+                    return const Center(child: Text('Data tidak ditemukan'));
+                  }
+                  return ListView.builder(
+                    itemCount: filteredList.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredList[index];
+                      return ListTile(
+                        title: Text(item['value'] ?? item['label'] ?? ''),
+                        onTap: () {
+                          onSelect(item);
+                          Get.back();
+                        },
+                      );
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   InputDecoration _fieldDecoration(String label, IconData icon,
       {Color iconColor = Colors.blueAccent}) {
     return InputDecoration(
@@ -318,41 +421,50 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DropdownButtonFormField<String>(
-                  value: brandController.text.isNotEmpty
-                      ? brandController.text
-                      : null,
-                  items: (options['brands'] as List<dynamic>? ?? [])
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['value']),
-                          ))
-                      .toList(),
-                  decoration: _fieldDecoration('Brand', Icons.laptop_mac),
-                  onChanged: (val) => brandController.text = val ?? '',
-                  validator: (val) {
-                    if ((rules['rules']?['brand'] ?? []).contains('required') &&
-                        (val == null || val.isEmpty)) {
-                      return rules['messages']?['brand.required'] ??
-                          'Brand wajib diisi';
-                    }
-                    return null;
-                  },
+                // Brand dengan search
+                GestureDetector(
+                  onTap: () => _openSearchDropdownDialog(
+                    title: 'Brand',
+                    searchController: _brandSearchController,
+                    filteredList: _filteredBrands,
+                    onSelect: (item) {
+                      brandController.text = item['value'] ?? '';
+                    },
+                  ),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: brandController,
+                      decoration: _fieldDecoration('Brand', Icons.laptop_mac),
+                      validator: (val) {
+                        if ((rules['rules']?['brand'] ?? [])
+                                .contains('required') &&
+                            (val == null || val.isEmpty)) {
+                          return rules['messages']?['brand.required'] ??
+                              'Brand wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: brandNameController.text.isNotEmpty
-                      ? brandNameController.text
-                      : null,
-                  items: (options['brandNames'] as List<dynamic>? ?? [])
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['value']),
-                          ))
-                      .toList(),
-                  decoration: _fieldDecoration(
-                      'Brand Name / Model', Icons.devices_other),
-                  onChanged: (val) => brandNameController.text = val ?? '',
+                // Brand Name dengan search
+                GestureDetector(
+                  onTap: () => _openSearchDropdownDialog(
+                    title: 'Brand Name / Model',
+                    searchController: _brandNameSearchController,
+                    filteredList: _filteredBrandNames,
+                    onSelect: (item) {
+                      brandNameController.text = item['value'] ?? '';
+                    },
+                  ),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: brandNameController,
+                      decoration: _fieldDecoration(
+                          'Brand Name / Model', Icons.devices_other),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -366,6 +478,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   decoration: _fieldDecoration('Asset Code', Icons.qr_code_2),
                 ),
                 const SizedBox(height: 16),
+                // Kategori (Bribox) dengan search (sudah ada)
                 GestureDetector(
                   onTap: _openBriboxSearchDialog,
                   child: AbsorbPointer(

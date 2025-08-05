@@ -1,18 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.briven">
 
-    <!-- ✅ Permissions -->
-    <!-- Android 10 dan sebelumnya -->
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <!-- Android 11+ (akses penuh ke semua file) -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-
-    <!-- Android 13+ (akses media spesifik) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- ✅ Ini yang wajib ditambahkan -->
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
 
     <application
         android:name="${applicationName}"
@@ -45,7 +44,6 @@
             android:value="2" />
     </application>
 
-    <!-- Opsional: Dibutuhkan beberapa plugin Flutter -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />

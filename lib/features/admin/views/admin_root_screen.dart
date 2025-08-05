@@ -1,9 +1,10 @@
+import 'package:briven/features/admin/views/admin_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_devices_screen.dart';
-import 'user_management_screen.dart';
+import 'admin_profile.dart';
 import 'admin_assignments_screen.dart';
 import '../../../services/api_service.dart';
 
@@ -22,14 +23,14 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
     AdminDashboardScreen(),
     AdminDevicesScreen(),
     AdminAssignmentsScreen(),
-    UserManagementScreen(),
+    AdminProfileScreen(),
   ];
 
   final List<String> _titles = const [
     'Dashboard Admin',
     'Device Management',
     'Device Assignments',
-    'User Management',
+    'Admin Profile',
   ];
 
   void _onItemTapped(int index) {
@@ -94,7 +95,12 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
           ),
         ],
       ),
-      body: _pages[_selectedIndex],
+      body: Stack(
+        children: [
+          _pages[_selectedIndex],
+          const SizedBox(height: 80), // Supaya konten tidak ketutup FAB
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openQrScanner,
         backgroundColor: Colors.blueAccent,
@@ -110,10 +116,14 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
         currentIndex: _selectedIndex,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey.shade500,
-        selectedLabelStyle:
-            const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w400),
+        selectedLabelStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.w400,
+        ),
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(

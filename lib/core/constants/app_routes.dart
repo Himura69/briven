@@ -1,19 +1,24 @@
+import 'package:briven/features/admin/views/admin_profile.dart';
+import 'package:briven/features/admin/views/qr_scanner_screen.dart';
+import 'package:briven/features/admin/views/qr_scan_result_screen.dart';
 import 'package:get/get.dart';
 import '../../features/admin/views/admin_dashboard_screen.dart';
 import '../../features/admin/views/admin_devices_screen.dart';
 import '../../features/admin/views/device_form_screen.dart';
 import '../../features/admin/views/admin_root_screen.dart';
-import '../../features/admin/views/admin_assignments_screen.dart'; // ✅ Tambahan
+import '../../features/admin/views/admin_assignments_screen.dart';
+import '../../features/admin/controllers/qr_scanner_controller.dart';
 
 class AppRoutes {
-  // Nama route
   static const String adminRoot = '/admin/root';
   static const String adminDashboard = '/admin/dashboard';
   static const String adminDevices = '/admin/devices';
   static const String adminDeviceForm = '/admin/device-form';
-  static const String adminAssignments = '/admin-assignments'; // ✅ Tambahan
+  static const String adminAssignments = '/admin-assignments';
+  static const String qrScanner = '/qr-scan';
+  static const String qrScanResult = '/qr-scan-result';
+  static const String adminProfile = '/admin-profile';
 
-  // Semua route didaftarkan di sini
   static final routes = [
     GetPage(
       name: adminRoot,
@@ -34,6 +39,25 @@ class AppRoutes {
     GetPage(
       name: adminAssignments,
       page: () => const AdminAssignmentsScreen(),
+    ),
+    GetPage(
+      name: qrScanner,
+      page: () => const QrScannerScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => QrScannerController());
+      }),
+    ),
+    GetPage(
+      name: qrScanResult,
+      page: () => const QrScanResultScreen(),
+      binding: BindingsBuilder(() {
+        // Bind again to ensure controller is available here
+        Get.lazyPut(() => QrScannerController());
+      }),
+    ),
+    GetPage(
+      name: adminProfile,
+      page: () => const AdminProfileScreen(),
     ),
   ];
 }
