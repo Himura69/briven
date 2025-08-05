@@ -44,10 +44,71 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
       await apiService.logout();
       Get.offAllNamed('/login');
     } catch (e) {
-      Get.snackbar('Error', 'Gagal logout: $e',
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Error',
+        'Gagal logout: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
+
+  // Fungsi untuk menampilkan dialog konfirmasi logout
+  // ... (kode lainnya)
+
+// Fungsi untuk menampilkan dialog konfirmasi logout dengan tampilan yang diperbarui
+  void _confirmLogout() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.logout_rounded, color: AppColors.primary),
+            const SizedBox(width: 12),
+            const Text('Konfirmasi Logout'),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari aplikasi?',
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(); // Tutup dialog
+            },
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                color: AppColors.primary.withOpacity(0.7),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Get.back(); // Tutup dialog
+              _logout(); // Lanjutkan proses logout
+            },
+            child: const Text(
+              'Ya, Keluar',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ... (kode lainnya)
 
   void _openQrScanner() {
     Get.toNamed('/qr-scan');
@@ -91,7 +152,8 @@ class _AdminRootScreenState extends State<AdminRootScreen> {
           IconButton(
             tooltip: 'Logout',
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            onPressed: _logout,
+            onPressed:
+                _confirmLogout, // Mengganti _logout dengan _confirmLogout
           ),
         ],
       ),

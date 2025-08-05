@@ -47,9 +47,9 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   // Input Nomor Telepon
                   CustomTextField(
-                    hintText: 'Phone Number',
+                    hintText: 'Personal Number',
                     keyboardType: TextInputType.phone,
-                    prefixIcon: Icons.phone,
+                    prefixIcon: Icons.person_4,
                     controller: controller.pnController,
                   ),
                   const SizedBox(height: 16),
@@ -57,7 +57,7 @@ class LoginScreen extends StatelessWidget {
                   CustomTextField(
                     hintText: 'Password',
                     obscureText: true,
-                    prefixIcon: Icons.lock,
+                    prefixIcon: Icons.lock_person,
                     controller: controller.passwordController,
                   ),
                   const SizedBox(height: 16),
@@ -86,7 +86,9 @@ class LoginScreen extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           Get.snackbar(
-                              'Info', 'Forgot Password not implemented yet');
+                            'Info',
+                            'Silakan hubungi Super Admin untuk reset password.',
+                          );
                         },
                         child: Text(
                           'Forgot Password?',
