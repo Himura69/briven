@@ -6,6 +6,7 @@ class AdminDeviceModel {
   final String serialNumber;
   final String condition;
   final String category;
+  final String? briboxId; // <-- Tambahkan ini
   final String? spec1;
   final String? spec2;
   final String? spec3;
@@ -31,6 +32,7 @@ class AdminDeviceModel {
     required this.serialNumber,
     required this.condition,
     required this.category,
+    this.briboxId, // <-- Tambahkan ini
     this.spec1,
     this.spec2,
     this.spec3,
@@ -57,6 +59,7 @@ class AdminDeviceModel {
       serialNumber: json['serialNumber'] ?? '',
       condition: json['condition'] ?? '',
       category: json['category'] ?? '',
+      briboxId: json['bribox_id'], // <-- Tambahkan ini
       spec1: json['spec1'],
       spec2: json['spec2'],
       spec3: json['spec3'],
@@ -89,6 +92,7 @@ class AdminDeviceModel {
       'serialNumber': serialNumber,
       'condition': condition,
       'category': category,
+      'bribox_id': briboxId, // <-- Tambahkan ini
       'spec1': spec1,
       'spec2': spec2,
       'spec3': spec3,

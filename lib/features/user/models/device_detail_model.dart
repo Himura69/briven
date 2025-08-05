@@ -4,6 +4,7 @@ class DeviceDetailModel {
   final String? serialNumber;
   final String? assetCode;
   final String? assignedDate;
+  final String? briboxId; // Optional field for Bribox ID
   final String? spec1;
   final String? spec2;
   final String? spec3;
@@ -16,6 +17,7 @@ class DeviceDetailModel {
     this.serialNumber,
     this.assetCode,
     this.assignedDate,
+    this.briboxId, // Optional field for Bribox ID
     this.spec1,
     this.spec2,
     this.spec3,
@@ -32,6 +34,7 @@ class DeviceDetailModel {
       serialNumber: deviceData['serialNumber'] as String?,
       assetCode: deviceData['assetCode'] as String?,
       assignedDate: deviceData['assignedDate'] as String?,
+      briboxId: deviceData['briboxId'] as String?, // Optional field for Bribox ID
       spec1: deviceData['spec1'] as String?,
       spec2: deviceData['spec2'] as String?,
       spec3: deviceData['spec3'] as String?,
@@ -47,6 +50,7 @@ class DeviceDetailModel {
       'serialNumber': serialNumber,
       'assetCode': assetCode,
       'assignedDate': assignedDate,
+      'briboxId': briboxId, // Optional field for Bribox ID
       'spec1': spec1,
       'spec2': spec2,
       'spec3': spec3,

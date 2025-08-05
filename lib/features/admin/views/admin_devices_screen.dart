@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:briven/features/admin/views/admin_device_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -252,7 +254,8 @@ class AdminDevicesScreen extends StatelessWidget {
                         child: AdminDeviceCard(
                           device: device,
                           onEdit: () {
-                            Get.to(() => DeviceFormScreen(device: device),
+                            log("Kontol");
+                            Get.to(() => DeviceFormScreen(device: device, deviceId: device.deviceId),
                                 transition: Transition.fadeIn);
                           },
                           onDelete: () async {

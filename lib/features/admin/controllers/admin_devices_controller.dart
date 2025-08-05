@@ -76,6 +76,15 @@ class AdminDevicesController extends GetxController {
   Future<AdminDeviceModel?> fetchDeviceDetail(int deviceId) async {
     try {
       final data = await apiService.getAdminDeviceDetail(deviceId);
+      // Dummy data for testing
+      // final data = {
+      //   "id": deviceId,
+      //   "name": "Dummy Device",
+      //   "type": "Test Type",
+      //   "status": "active",
+      //   "created_at": DateTime.now().toIso8601String(),
+      //   "updated_at": DateTime.now().toIso8601String(),
+      // };
       return AdminDeviceModel.fromJson(data);
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat detail perangkat: $e');
@@ -98,12 +107,26 @@ class AdminDevicesController extends GetxController {
 
   Future<bool> updateDevice(int id, Map<String, dynamic> payload) async {
     try {
+      // Pastikan bribox_id berupa ID integer yang valid sebelum dikirim ke backend
+      if (payload.containsKey('bribox_id')) {
+        final briboxes = (formOptions['briboxes'] as List<dynamic>? ?? [])
+            .cast<Map<String, dynamic>>();
+        final input = payload['bribox_id'];
+        // Cari ID dari value atau label
+        final match = briboxes.firstWhereOrNull((item) =>
+            item['value'].toString() == input.toString() ||
+            item['label'].toString() == input.toString());
+        if (match != null) {
+          payload['bribox_id'] = match['value'];
+        } else {
+          payload['bribox_id'] = null; // Atau hapus field jika tidak valid
+        }
+      }
+
       await apiService.updateAdminDevice(id, payload);
       await fetchDevices(); // Refresh list
-      // Get.snackbar('Sukses', 'Perangkat berhasil diperbarui');
       return true;
     } catch (e) {
-      // Get.snackbar('Error', 'Gagal memperbarui perangkat: $e');
       return false;
     }
   }

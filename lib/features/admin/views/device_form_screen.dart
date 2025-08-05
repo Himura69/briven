@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,8 +9,8 @@ import '../models/admin_device_model.dart';
 
 class DeviceFormScreen extends StatefulWidget {
   final AdminDeviceModel? device;
-
-  const DeviceFormScreen({super.key, this.device});
+  final int? deviceId;
+  const DeviceFormScreen({super.key, this.device, this.deviceId});
 
   @override
   State<DeviceFormScreen> createState() => _DeviceFormScreenState();
@@ -17,6 +19,9 @@ class DeviceFormScreen extends StatefulWidget {
 class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final controller = Get.find<AdminDevicesController>();
   final _formKey = GlobalKey<FormState>();
+  final isLoading = false.obs;
+  final deviceDetail = Rxn<AdminDeviceModel>();
+  final errorMessage = ''.obs;
 
   final brandController = TextEditingController();
   final brandNameController = TextEditingController();
@@ -34,13 +39,12 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final condition = RxString('');
   final status = RxString('');
 
-  bool get isEditing => widget.device != null;
+  bool get isEditing => widget.deviceId != null;
 
   final TextEditingController _briboxSearchController = TextEditingController();
   final RxList<Map<String, dynamic>> _filteredBriboxes =
       <Map<String, dynamic>>[].obs;
 
-  // Tambahan controller dan list untuk search dropdown
   final TextEditingController _brandSearchController = TextEditingController();
   final RxList<Map<String, dynamic>> _filteredBrands =
       <Map<String, dynamic>>[].obs;
@@ -50,59 +54,52 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   final RxList<Map<String, dynamic>> _filteredBrandNames =
       <Map<String, dynamic>>[].obs;
 
-  @override
-  void initState() {
-    super.initState();
-    controller.loadFormOptions().then((_) {
-      // Prefill filtered lists
-      _filteredBrands.value =
-          (controller.formOptions['brands'] as List<dynamic>? ?? [])
-              .cast<Map<String, dynamic>>();
-      _filteredBrandNames.value =
-          (controller.formOptions['brandNames'] as List<dynamic>? ?? [])
-              .cast<Map<String, dynamic>>();
-    });
-    controller.loadValidationRules();
+  Future<void> _loadDeviceDetail() async {
+    if (!isEditing) return;
+    try {
+      isLoading.value = true;
+      final AdminDeviceModel? data =
+          await controller.fetchDeviceDetail(widget.deviceId!);
+      deviceDetail.value = data;
+      log('Fetched device detail: $data');
 
-    if (isEditing) {
-      final device = widget.device!;
-      brandController.text = device.brand;
-      brandNameController.text = device.brandName;
-      serialController.text = device.serialNumber;
-      assetCodeController.text = device.assetCode;
-      spec1Controller.text = device.spec1 ?? '';
-      spec2Controller.text = device.spec2 ?? '';
-      spec3Controller.text = device.spec3 ?? '';
-      spec4Controller.text = device.spec4 ?? '';
-      spec5Controller.text = device.spec5 ?? '';
-      condition.value = device.condition;
-      status.value = device.isAssigned ? "Digunakan" : "Tidak Digunakan";
+      // Populate form fields with fetched data
+      brandController.text = data?.brand ?? '';
+      brandNameController.text = data?.brandName ?? '';
+      serialController.text = data?.serialNumber ?? '';
+      assetCodeController.text = data?.assetCode ?? '';
+      briboxId.value = data?.briboxId ?? '';
+      spec1Controller.text = data?.spec1 ?? '';
+      spec2Controller.text = data?.spec2 ?? '';
+      spec3Controller.text = data?.spec3 ?? '';
+      spec4Controller.text = data?.spec4 ?? '';
+      spec5Controller.text = data?.spec5 ?? '';
+      devDateController.text = data?.devDate ?? '';
+      condition.value = data?.condition ?? '';
+      status.value =
+          (data?.isAssigned ?? false) ? "Digunakan" : "Tidak Digunakan";
 
+      // Prefill dropdown kategori dengan ID
       final allBriboxes =
           (controller.formOptions['briboxes'] as List<dynamic>? ?? [])
               .cast<Map<String, dynamic>>();
-      final match = allBriboxes.firstWhereOrNull(
-        (item) => item['label'] == device.category,
+      final selectedBribox = allBriboxes.firstWhereOrNull(
+        (item) => item['value'].toString() == data?.briboxId?.toString(),
       );
-
-      if (match != null) {
-        briboxId.value = match['value'] ?? '';
-        briboxLabel.value = match['label'] ?? '';
+      if (selectedBribox != null) {
+        briboxId.value = selectedBribox['value'].toString();
+        briboxLabel.value = selectedBribox['label'] ?? '';
       } else {
-        briboxId.value = device.category;
-        briboxLabel.value = device.category;
+        briboxId.value = '';
+        briboxLabel.value = '';
       }
 
-      if (device.assignedDate != null) {
-        devDateController.text = device.assignedDate!;
-      }
-
-      // Notifikasi di atas (SnackBar) selama 5 detik
+      // Show warning to reselect bribox category
       Future.delayed(const Duration(milliseconds: 300), () {
         Get.snackbar(
           "Peringatan",
           "Harap mengisi ulang Kategori (Bribox) sebelum menyimpan.",
-          snackPosition: SnackPosition.TOP, // Muncul di atas
+          snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.orangeAccent.shade100,
           colorText: Colors.black87,
           borderRadius: 12,
@@ -113,7 +110,41 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
           isDismissible: true,
         );
       });
+    } catch (e) {
+      errorMessage.value = 'Gagal memuat detail perangkat: $e';
+      Get.snackbar(
+        "Error",
+        errorMessage.value,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        duration: const Duration(seconds: 5),
+        icon: const Icon(Icons.error, color: Colors.white),
+        isDismissible: true,
+      );
+    } finally {
+      isLoading.value = false;
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadFormOptions().then((_) {
+      _filteredBrands.value =
+          (controller.formOptions['brands'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+      _filteredBrandNames.value =
+          (controller.formOptions['brandNames'] as List<dynamic>? ?? [])
+              .cast<Map<String, dynamic>>();
+
+      if (isEditing) {
+        _loadDeviceDetail();
+      }
+    });
+    controller.loadValidationRules();
 
     _briboxSearchController.addListener(() {
       final allBriboxes =
@@ -183,7 +214,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     }
   }
 
-  // Perbaikan: hanya satu popup sukses + popup peringatan di atas
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -192,8 +222,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       "brand_name": brandNameController.text,
       "serial_number": serialController.text,
       "asset_code": assetCodeController.text,
-      "bribox_id":
-          briboxId.value.isNotEmpty ? briboxId.value : widget.device?.category,
+      "bribox_id": briboxId.value.isNotEmpty ? briboxId.value : null,
       "condition": condition.value,
       "status": status.value,
       "spec1": spec1Controller.text,
@@ -207,7 +236,22 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
 
     bool success;
     if (isEditing) {
-      success = await controller.updateDevice(widget.device!.deviceId, payload);
+      if (deviceDetail.value == null) {
+        Get.snackbar(
+          "Error",
+          "Data perangkat tidak tersedia untuk diupdate.",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(12),
+          borderRadius: 12,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
+        return;
+      }
+      success =
+          await controller.updateDevice(deviceDetail.value!.deviceId, payload);
       if (success) {
         _showSuccessPopup(isEditing: true);
       }
@@ -219,7 +263,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     }
   }
 
-// Satu fungsi popup sukses
   void _showSuccessPopup({required bool isEditing}) {
     final msg = isEditing
         ? "Perubahan berhasil disimpan!"
@@ -229,7 +272,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
       msg,
       backgroundColor: Colors.green.shade600,
       colorText: Colors.white,
-      snackPosition: SnackPosition.TOP, // selalu atas
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(12),
       borderRadius: 12,
       icon: const Icon(Icons.check_circle, color: Colors.white),
@@ -301,7 +344,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     );
   }
 
-  // Widget custom untuk dropdown search
   Future<void> _openSearchDropdownDialog({
     required String title,
     required TextEditingController searchController,
@@ -317,9 +359,11 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w600)),
+              Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: searchController,
@@ -397,31 +441,37 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+    return Obx(() {
+      if (isLoading.value) {
+        log("Loading device form...");
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (errorMessage.value.isNotEmpty) {
+        log("Error: ${errorMessage.value}");
+        return Center(
+            child: Text(errorMessage.value,
+                style: const TextStyle(color: Colors.red)));
+      }
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            isEditing ? 'Edit Perangkat' : 'Tambah Perangkat',
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
         ),
-        title: Text(
-          isEditing ? 'Edit Perangkat' : 'Tambah Perangkat',
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-        ),
-      ),
-      backgroundColor: const Color(0xFFF4F6F8),
-      body: Obx(() {
-        final options = controller.formOptions;
-        final rules = controller.validationRules;
-
-        return SingleChildScrollView(
+        backgroundColor: const Color(0xFFF4F6F8),
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Brand dengan search
                 GestureDetector(
                   onTap: () => _openSearchDropdownDialog(
                     title: 'Brand',
@@ -436,10 +486,12 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                       controller: brandController,
                       decoration: _fieldDecoration('Brand', Icons.laptop_mac),
                       validator: (val) {
-                        if ((rules['rules']?['brand'] ?? [])
+                        if ((controller.validationRules['rules']?['brand'] ??
+                                    [])
                                 .contains('required') &&
                             (val == null || val.isEmpty)) {
-                          return rules['messages']?['brand.required'] ??
+                          return controller.validationRules['messages']
+                                  ?['brand.required'] ??
                               'Brand wajib diisi';
                         }
                         return null;
@@ -448,7 +500,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Brand Name dengan search
                 GestureDetector(
                   onTap: () => _openSearchDropdownDialog(
                     title: 'Brand Name / Model',
@@ -478,7 +529,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   decoration: _fieldDecoration('Asset Code', Icons.qr_code_2),
                 ),
                 const SizedBox(height: 16),
-                // Kategori (Bribox) dengan search (sudah ada)
                 GestureDetector(
                   onTap: _openBriboxSearchDialog,
                   child: AbsorbPointer(
@@ -501,12 +551,14 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: condition.value.isNotEmpty ? condition.value : null,
-                  items: (options['conditions'] as List<dynamic>? ?? [])
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['value']),
-                          ))
-                      .toList(),
+                  items:
+                      (controller.formOptions['conditions'] as List<dynamic>? ??
+                              [])
+                          .map((item) => DropdownMenuItem<String>(
+                                value: item['value'],
+                                child: Text(item['value']),
+                              ))
+                          .toList(),
                   decoration: _fieldDecoration('Kondisi', Icons.verified,
                       iconColor: _conditionColor(condition.value.isNotEmpty
                           ? condition.value
@@ -516,12 +568,14 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: status.value.isNotEmpty ? status.value : null,
-                  items: (options['statuses'] as List<dynamic>? ?? [])
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['value']),
-                          ))
-                      .toList(),
+                  items:
+                      (controller.formOptions['statuses'] as List<dynamic>? ??
+                              [])
+                          .map((item) => DropdownMenuItem<String>(
+                                value: item['value'],
+                                child: Text(item['value']),
+                              ))
+                          .toList(),
                   decoration: _fieldDecoration('Status', Icons.toggle_on,
                       iconColor: Colors.orange),
                   onChanged: (val) => status.value = val ?? '',
@@ -565,16 +619,17 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
                   label: Text(
                     isEditing ? 'Simpan Perubahan' : 'Tambah Perangkat',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
 }
