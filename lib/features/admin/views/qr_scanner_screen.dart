@@ -43,7 +43,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         // Navigasi ke result screen
         Get.to(() => const QrScanResultScreen());
       } else {
-        Get.snackbar("QR Tidak Valid", "Format QR code tidak sesuai (harus prefix briven-)");
+        Get.snackbar("QR Tidak Valid",
+            "Format QR code tidak sesuai (harus prefix briven-)");
         controller.resumeCamera();
         isScanned = false;
       }
@@ -59,16 +60,34 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: QRView(
-        key: qrKey,
-        onQRViewCreated: _onQRViewCreated,
-        overlay: QrScannerOverlayShape(
-          borderColor: Colors.blue,
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: 300,
-        ),
+      body: Stack(
+        children: [
+          // Widget kamera QR berada di lapisan paling bawah
+          QRView(
+            key: qrKey,
+            onQRViewCreated: _onQRViewCreated,
+            overlay: QrScannerOverlayShape(
+              borderColor: Colors.blue,
+              borderRadius: 10,
+              borderLength: 30,
+              borderWidth: 10,
+              cutOutSize: 300,
+            ),
+          ),
+
+          // Widget gambar Anda di lapisan atas
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 50.0), // Beri jarak dari atas
+              child: Image.asset(
+                'assets/images/Frame 16.png', // Ganti dengan path gambar Anda
+                width: 250,
+                height: 150,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

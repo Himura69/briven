@@ -80,6 +80,7 @@ class AdminDevicesController extends GetxController {
       // final data = {
       //   "id": deviceId,
       //   "name": "Dummy Device",
+      
       //   "type": "Test Type",
       //   "status": "active",
       //   "created_at": DateTime.now().toIso8601String(),

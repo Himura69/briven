@@ -189,7 +189,8 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.tryParse(devDateController.text) ?? DateTime.now(),
+      initialDate:
+          DateTime.tryParse(devDateController.text) ?? DateTime.parse(''),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -429,7 +430,16 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
     return Obx(() {
       if (isLoading.value) {
         log("Loading device form...");
-        return const Center(child: CircularProgressIndicator());
+        return Container(
+          color: Color(
+              0xFFF4F6F8), // Mengubah latar belakang ke warna default Scaffold
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Colors
+                  .blueAccent, // Mengubah warna indikator ke biru untuk kontras
+            ),
+          ),
+        );
       }
       if (errorMessage.value.isNotEmpty) {
         log("Error: ${errorMessage.value}");
