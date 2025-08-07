@@ -57,7 +57,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   Future<void> _loadDeviceDetail() async {
     if (!isEditing) return;
     try {
-      isLoading.value = true;
       final AdminDeviceModel? data =
           await controller.fetchDeviceDetail(widget.deviceId!);
       deviceDetail.value = data;
@@ -110,7 +109,7 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
         isDismissible: true,
       );
     } finally {
-      isLoading.value = false;
+      // Jangan set isLoading di sini agar tidak muncul loading sebelum prefill
     }
   }
 
@@ -428,19 +427,6 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (isLoading.value) {
-        log("Loading device form...");
-        return Container(
-          color: Color(
-              0xFFF4F6F8), // Mengubah latar belakang ke warna default Scaffold
-          child: const Center(
-            child: CircularProgressIndicator(
-              color: Colors
-                  .blueAccent, // Mengubah warna indikator ke biru untuk kontras
-            ),
-          ),
-        );
-      }
       if (errorMessage.value.isNotEmpty) {
         log("Error: ${errorMessage.value}");
         return Center(
