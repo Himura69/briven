@@ -61,7 +61,12 @@ class _AdminAssignmentsScreenState extends State<AdminAssignmentsScreen> {
   }
 
   void goToDetail(int assignmentId) {
-    Get.to(() => AssignmentDetailScreen(assignmentId: assignmentId));
+    Get.to(
+      () => AssignmentDetailScreen(assignmentId: assignmentId),
+      transition:
+          Transition.rightToLeftWithFade, // 👈 Pilih transisi favorit Anda
+      duration: const Duration(milliseconds: 400), // 👈 Atur durasi (opsional)
+    );
   }
 
   void goToReturnDevice(int assignmentId) async {

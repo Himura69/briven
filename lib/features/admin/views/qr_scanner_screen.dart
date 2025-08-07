@@ -43,8 +43,10 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         // Navigasi ke result screen
         Get.to(() => const QrScanResultScreen());
       } else {
-        Get.snackbar("QR Tidak Valid",
-            "Format QR code tidak sesuai (harus prefix briven-)");
+        Get.snackbar(
+          "QR Tidak Valid",
+          "Format QR code tidak sesuai (harus prefix briven-)",
+        );
         controller.resumeCamera();
         isScanned = false;
       }
@@ -62,7 +64,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Widget kamera QR berada di lapisan paling bawah
+          // QR Camera View
           QRView(
             key: qrKey,
             onQRViewCreated: _onQRViewCreated,
@@ -75,15 +77,34 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             ),
           ),
 
-          // Widget gambar Anda di lapisan atas
+          // Gambar di atas kamera
           Align(
             alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.only(top: 50.0), // Beri jarak dari atas
+              padding: const EdgeInsets.only(top: 50.0),
               child: Image.asset(
-                'assets/images/Frame 16.png', // Ganti dengan path gambar Anda
-                width: 250,
+                'assets/images/Frame 16.png',
+                width: 220,
                 height: 150,
+              ),
+            ),
+          ),
+
+          // Tombol Back di kiri atas
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: CircleAvatar(
+                  backgroundColor: Colors.black54,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Get.back(); // Kembali ke halaman sebelumnya
+                    },
+                  ),
+                ),
               ),
             ),
           ),

@@ -118,7 +118,7 @@ class AdminDevicesScreen extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () {
                     Get.to(() => DeviceFormScreen(),
-                        transition: Transition.fadeIn);
+                        transition: Transition.downToUp);
                   },
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: const Text(
@@ -255,8 +255,10 @@ class AdminDevicesScreen extends StatelessWidget {
                           device: device,
                           onEdit: () {
                             log("Kontol");
-                            Get.to(() => DeviceFormScreen(device: device, deviceId: device.deviceId),
-                                transition: Transition.fadeIn);
+                            Get.to(
+                                () => DeviceFormScreen(
+                                    device: device, deviceId: device.deviceId),
+                                transition: Transition.downToUp);
                           },
                           onDelete: () async {
                             await controller.deleteDevice(device.deviceId);
